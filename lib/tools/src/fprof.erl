@@ -803,7 +803,9 @@ code_change() ->
 	  id,
 	  cnt = 0,   % Number of calls
 	  own = 0,   % Own time (wall clock)
-	  acc = 0}). % Accumulated time : own + subfunctions (wall clock)
+	  acc = 0,   % Accumulated time : own + subfunctions (wall clock)
+	  sus = 0,   % Suspend time : own + subfunctions (wall clock)
+	  gc  = 0}). % Garbage Collect time : own + subfunctions (wall clock)
 
 -record(proc, {
 	  id,
@@ -1537,6 +1539,7 @@ spawn_link_trace_client(Table, GroupLeader, Dump) ->
     spawn_link_3step(
       fun() ->
 	      process_flag(trap_exit, true),
+	      process_flag(message_queue_data, off_heap),
 	      {self(),go}
       end,
       fun(Ack) ->
@@ -2251,8 +2254,16 @@ trace_exit(Table, Pid, TS) ->
 	    ok;
 	[] ->
 	    ok;
-	[_ | _] = Stack ->
-	    _ = trace_return_to_int(Table, Pid, undefined, TS, Stack),
+	[[Frame | _] | _] = Stack ->
+	    case Frame of
+		{suspend, TS0} ->
+		    add_suspend_time(Table, Pid, ts_sub(TS, TS0), Stack);
+		{garbage_collect, TS0} ->
+		    add_gc_time(Table, Pid, ts_sub(TS, TS0), Stack);
+		_ ->
+		    ok
+	    end,
+	    trace_return_to_int(Table, Pid, undefined, TS, Stack),
 	    ok
     end,
     ok.
@@ -2289,15 +2300,17 @@ trace_in(Table, Pid, Func, TS) ->
 	    put(Pid, [[{Func,TS}]]);
 	[] ->
 	    put(Pid, [[{Func,TS}]]);
-	[[{suspend, _}]] ->
+	[[{suspend, TS0}]] ->
+	    add_suspend_time(Table, Pid, ts_sub(TS, TS0), Stack),
 	    put(Pid, trace_return_to_int(Table, Pid, undefined, TS, Stack));
 	[[{suspend,_}] | [[{suspend,_}] | _]=NewStack] ->
 	    %% No stats update for a suspend on suspend
 	    put(Pid, NewStack);
-	[[{suspend, _}] | [[{Func1, _} | _] | _]] ->
+	[[{suspend, TS0}] | [[{Func1, _} | _] | _]] ->
 	    %% This is a new process (suspend and Func1 was inserted
 	    %% by trace_spawn) or any process that has just been
 	    %% scheduled out and now back in.
+	    add_suspend_time(Table, Pid, ts_sub(TS, TS0), Stack),
 	    put(Pid, trace_return_to_int(Table, Pid, Func1, TS, Stack));
 	_ ->
 	    throw({inconsistent_trace_data, ?MODULE, ?LINE,
@@ -2321,9 +2334,11 @@ trace_gc_end(Table, Pid, TS) ->
 	    put(Pid, []);
 	[] ->
 	    ok;
-	[[{garbage_collect, _}]] ->
+	[[{garbage_collect, TS0}]] ->
+	    add_gc_time(Table, Pid, ts_sub(TS, TS0), Stack),
 	    put(Pid, trace_return_to_int(Table, Pid, undefined, TS, Stack));
-	[[{garbage_collect, _}], [{Func1, _} | _] | _] ->
+	[[{garbage_collect, TS0}], [{Func1, _} | _] | _] ->
+	    add_gc_time(Table, Pid, ts_sub(TS, TS0), Stack),
 	    put(Pid, trace_return_to_int(Table, Pid, Func1, TS, Stack));
 	_ ->
 	    throw({inconsistent_trace_data, ?MODULE, ?LINE,
@@ -2372,6 +2387,29 @@ init_log(Table, Id, Entry) ->
 	    [] -> undefined
 	end,
     init_log(Table,Proc,Entry).
+
+add_suspend_time(Table, Pid, T, Stack) ->
+    add_time(Table, Pid, T, Stack, #clocks.sus).
+
+add_gc_time(Table, Pid, T, Stack) ->
+    add_time(Table, Pid, T, Stack, #clocks.gc).
+
+add_time(Table, Pid, T, Stack, Clock) ->
+    add_time_1(Table, Pid, T, [{undefined, undefined} | lists:reverse(lists:append(Stack))],
+	Clock, []).
+
+add_time_1(_Table, _Pid, _T, [{suspend, _}], #clocks.sus, _Charged) ->
+    ok;
+add_time_1(_Table, _Pid, _T, [{garbage_collect, _}], #clocks.gc, _Charged) ->
+    ok;
+add_time_1(Table, Pid, T, [{Caller, _} | [{Func, _} | _] = TStack], Clock, Charged) ->
+    Charged2 = case lists:member(Func, Charged) of
+	true ->
+	    Charged;
+	false ->
+	    clock_add(Table, {Pid, Caller, Func}, Clock, T), [Func | Charged]
+    end,
+    add_time_1(Table, Pid, T, TStack, Clock, Charged2).
 
 
 trace_clock(_Table, _Pid, _T, 
@@ -2433,16 +2471,22 @@ clocks_add(Table, #clocks{id = Id} = Clocks) ->
 clocks_sum(#clocks{id = _Id1, 
 		   cnt = Cnt1, 
 		   own = Own1, 
-		   acc = Acc1}, 
+		   acc = Acc1,
+		   sus = Sus1,
+		   gc = Gc1},
 	   #clocks{id = _Id2, 
 		   cnt = Cnt2, 
 		   own = Own2, 
-		   acc = Acc2}, 
+		   acc = Acc2,
+		   sus = Sus2,
+		   gc = Gc2},
 	   Id) ->
     #clocks{id = Id,
 	    cnt = Cnt1 + Cnt2,
 	    own = Own1 + Own2,
-	    acc = Acc1 + Acc2}.
+	    acc = Acc1 + Acc2,
+	    sus = Sus1 + Sus2,
+	    gc = Gc1 + Gc2}.
 
 
 
@@ -2743,38 +2787,44 @@ println({undefined, _}, _Head,
 	_Tail, _Comment) ->
     ok;
 println({Io, [W1, W2, W3, W4]}, Head,
-	#clocks{id = Pid, cnt = Cnt, acc = _, own = Own},
+	#clocks{id = Pid, cnt = Cnt, acc = _, own = Own, sus = _, gc = _},
 	Tail, Comment) when is_pid(Pid) ->
     io:put_chars(Io,
 		 [pad(Head, $ , 3),
 		  flat_format(parsify(Pid), $,, W1),
 		  flat_format(Cnt, $,, W2, right),
 		  flat_format(undefined, $,, W3, right),
-		  flat_format(Own*0.001, [], W4-1, right),
+		  flat_format(Own*0.001, $,, W4-1, right),
+		  flat_format(undefined, $,, W4-1, right),
+		  flat_format(undefined, [], W4-1, right),
 		  pad(Tail, $ , 4),
 		  pad($ , Comment, 4),
 		  io_lib:nl()]);
 println({Io, [W1, W2, W3, W4]}, Head,
-	#clocks{id = {_M, _F, _A} = Func, cnt = Cnt, acc = Acc, own = Own},
+	#clocks{id = {_M, _F, _A} = Func, cnt = Cnt, acc = Acc, own = Own, sus = Sus, gc = Gc},
 	Tail, Comment) ->
     io:put_chars(Io,
 		 [pad(Head, $ , 3),
 		  flat_format(Func, $,, W1),
 		  flat_format(Cnt, $,, W2, right),
 		  flat_format(Acc*0.001, $,, W3, right),
-		  flat_format(Own*0.001, [], W4-1, right),
+		  flat_format(Own*0.001, $,, W4-1, right),
+		  flat_format(Sus*0.001, $,, W4-1, right),
+		  flat_format(Gc*0.001, [], W4-1, right),
 		  pad(Tail, $ , 4),
 		  pad($ , Comment, 4),
 		  io_lib:nl()]);
 println({Io, [W1, W2, W3, W4]}, Head,
-	#clocks{id = Id, cnt = Cnt, acc = Acc, own = Own},
+	#clocks{id = Id, cnt = Cnt, acc = Acc, own = Own, sus = Sus, gc = Gc},
 	Tail, Comment) ->
     io:put_chars(Io,
 		 [pad(Head, $ , 3),
 		  flat_format(parsify(Id), $,, W1),
 		  flat_format(Cnt, $,, W2, right),
 		  flat_format(Acc*0.001, $,, W3, right),
-		  flat_format(Own*0.001, [], W4-1, right),
+		  flat_format(Own*0.001, $,, W4-1, right),
+		  flat_format(Sus*0.001, $,, W4-1, right),
+		  flat_format(Gc*0.001, [], W4-1, right),
 		  pad(Tail, $ , 4),
 		  pad($ , Comment, 4),
 		  io_lib:nl()]);
@@ -2787,6 +2837,8 @@ println({Io, [W1, W2, W3, W4]}, Head,
 		  pad($ , " CNT ", W2),
 		  pad($ , " ACC ", W3),
 		  pad($ , " OWN", W4-1),
+		  pad($ , " SUS", W4-1),
+		  pad($ , " GC ", W4-1),
 		  pad(Tail, $ , 4),
 		  pad($ , Comment, 4),
 		  io_lib:nl()]);
