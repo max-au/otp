@@ -38,6 +38,7 @@
     errors/0, errors/1,
     leave_exit_race/0, leave_exit_race/1,
     single/0, single/1,
+    process_owner_check/0, process_owner_check/1,
     two/1,
     thundering_herd/0, thundering_herd/1,
     initial/1,
@@ -94,7 +95,7 @@ all() ->
 
 groups() ->
     [
-        {basic, [parallel], [errors, pg, leave_exit_race, single]},
+        {basic, [parallel], [errors, pg, leave_exit_race, single, process_owner_check]},
         {performance, [sequential], [thundering_herd]},
         {cluster, [parallel], [two, initial, netsplit, trisplit, foursplit,
             exchange, nolocal, double, scope_restart, missing_scope_join,
@@ -168,6 +169,25 @@ single(Config) when is_list(Config) ->
     sync(?FUNCTION_NAME),
     ?assertEqual([self()], pg:get_local_members(?FUNCTION_NAME, ?FUNCTION_NAME)),
     ?assertEqual(ok, pg:leave(?FUNCTION_NAME, ?FUNCTION_NAME, self())),
+    ok.
+
+process_owner_check() ->
+    [{doc, "Tests that process owner is local node"}].
+
+process_owner_check(Config) when is_list(Config) ->
+    {TwoPeer, Socket} = spawn_node(?FUNCTION_NAME, ?FUNCTION_NAME),
+    %% spawn remote process
+    LocalPid = erlang:spawn(forever()),
+    RemotePid = erlang:spawn(TwoPeer, forever()),
+    %% check they can't be joined locally
+    ?assertException(error, {nolocal, _}, pg:join(?FUNCTION_NAME, ?FUNCTION_NAME, RemotePid)),
+    ?assertException(error, {nolocal, _}, pg:join(?FUNCTION_NAME, ?FUNCTION_NAME, [RemotePid, RemotePid])),
+    ?assertException(error, {nolocal, _}, pg:join(?FUNCTION_NAME, ?FUNCTION_NAME, [LocalPid, RemotePid])),
+    %% check that non-pid also triggers error
+    ?assertException(error, {nolocal, _}, pg:join(?FUNCTION_NAME, ?FUNCTION_NAME, undefined)),
+    ?assertException(error, {nolocal, _}, pg:join(?FUNCTION_NAME, ?FUNCTION_NAME, [undefined])),
+    %% stop the peer
+    stop_node(TwoPeer, Socket),
     ok.
 
 two(Config) when is_list(Config) ->
