@@ -38,7 +38,8 @@
 	 exit_and_timeout/1, exit_twice/1,
 	 t_process_info/1, process_info_other/1, process_info_other_msg/1,
 	 process_info_other_dist_msg/1,
-         process_info_other_status/1,
+   process_info_other_status/1,
+	 process_info_message_queue_stats/1,
 	 process_info_2_list/1, process_info_lock_reschedule/1,
 	 process_info_lock_reschedule2/1,
 	 process_info_lock_reschedule3/1,
@@ -100,7 +101,7 @@ all() ->
      trap_exit_badarg, trap_exit_badarg_in_bif,
      t_process_info, process_info_other, process_info_other_msg,
      process_info_other_dist_msg, process_info_other_status,
-     process_info_2_list,
+     process_info_2_list, process_info_message_queue_stats,
      process_info_lock_reschedule,
      process_info_lock_reschedule2,
      process_info_lock_reschedule3,
@@ -769,6 +770,29 @@ chk_pi_order([],[]) ->
 chk_pi_order([{Arg, _}| Values], [Arg|Args]) ->
     chk_pi_order(Values, Args).
 
+process_info_message_queue_stats(Config) when is_list(Config) ->
+    Echo = spawn_link(fun echo/0),
+    {message_queue_stats, {0, 0, _, 0, 0}} = process_info(Echo, message_queue_stats),
+    Echo ! pick, process_info_messages_loop(100000000), %% instead of timer:sleep()
+    {message_queue_stats, {1, 1, _, 1, 1}} = process_info(Echo, message_queue_stats),
+    Echo ! dont_pick, process_info_messages_loop(100000000),
+    {message_queue_stats, {2, 1, _, 1, 0}} = process_info(Echo, message_queue_stats),
+    [Echo ! pick || _ <- lists:seq(1, 10)],
+    %% verify Timer
+    timer:sleep(100),
+    {message_queue_stats, {12, 11, Time, 10, 10}} = process_info(Echo, message_queue_stats),
+    true = Time >= 100,
+    Echo ! stop,
+    ok.
+
+echo() ->
+    receive
+        pick ->
+            echo();
+        stop ->
+            ok
+    end.
+
 process_info_2_list(Config) when is_list(Config) ->
     Proc = spawn_link(fun () -> receive after infinity -> ok end end),
     register(process_SUITE_process_info_2_list1, self()),
@@ -1118,6 +1142,7 @@ process_info_smoke_all(Config) when is_list(Config) ->
                     message_queue_data,
                     garbage_collection_info,
                     magic_ref,
+                    message_queue_stats,
                     fullsweep_after],
 
     {ok, Peer, Node} = ?CT_PEER(),
