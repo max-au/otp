@@ -3831,6 +3831,7 @@ dmc_array(DMCContext *context, DMCHeap *heap, DMC_STACK_TYPE(UWord) *text,
           Eterm *p, Uint nelems, int *constant)
 {
     int all_constant = 1;
+    int stack_need = context->stack_need;
     int textpos = DMC_STACK_NUM(*text);
     Uint i;
 
@@ -3851,8 +3852,11 @@ dmc_array(DMCContext *context, DMCHeap *heap, DMC_STACK_TYPE(UWord) *text,
         if (!c && all_constant) {
             all_constant = 0;
             if (i < nelems - 1) {
+                int const_count = nelems - i - 1;
+                int stack_added = context->stack_need - stack_need;
+                context->stack_need = stack_added + const_count;
                 dmc_rearrange_constants(context, text, textpos,
-                                        p + i + 1, nelems - i - 1);
+                                        p + i + 1, const_count);
             }
         } else if (c && !all_constant) {
             do_emit_constant(context, text, p[i]);
