@@ -261,11 +261,11 @@ alloc_blocks_size(Config) when is_list(Config) ->
                 true = test_server:stop_node(Node)
         end,
     case test_server:is_asan() of
-	false -> F("+Meamax");
+	false -> F(["+Meamax"]);
 	true -> skip
     end,
-    F("+Meamin"),
-    F(""),
+    F(["+Meamin"]),
+    F([]),
     ok.
 
 do_alloc_blocks_size() ->
@@ -277,7 +277,7 @@ start_slave(Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
     {ok, Node} = test_server:start_node(list_to_atom(Name),
                                         slave,
-                                        [{args, "-pa " ++ Pa ++ " " ++ Args}]),
+                                        [{args, ["-pa", Pa] ++ Args}]),
     Node.
 
 id(I) ->

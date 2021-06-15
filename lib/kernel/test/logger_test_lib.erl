@@ -39,9 +39,9 @@ setup(Config,Vars) ->
     file:write_file(ConfigFileName ++ ".config", io_lib:format("[{kernel, ~p}].",[Vars])),
     Sname = lists:concat([proplists:get_value(tc,Config)|Postfix]),
     case test_server:start_node(Sname, slave,
-                                [{args, ["-pa ",filename:dirname(code:which(?MODULE)),
-                                         " -boot start_sasl -kernel start_timer true "
-                                         "-config ",ConfigFileName]}]) of
+                                [{args, ["-pa",filename:dirname(code:which(?MODULE)),
+                                         "-boot", "start_sasl", "-kernel", "start_timer", "true",
+                                         "-config", ConfigFileName]}]) of
         {ok, Node} ->
             L = rpc:call(Node, logger, get_config, []),
             ct:log("~p",[L]),

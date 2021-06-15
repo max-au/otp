@@ -369,7 +369,7 @@ start_node(Config, Opts) when is_list(Config), is_list(Opts) ->
                         ++ integer_to_list(A)
                         ++ "-"
                         ++ integer_to_list(B)),
-    test_server:start_node(Name, slave, [{args, Opts++" -pa "++Pa}]).
+    test_server:start_node(Name, slave, [{args, Opts++["-pa", Pa]}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

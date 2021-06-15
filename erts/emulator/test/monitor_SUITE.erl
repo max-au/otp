@@ -444,7 +444,7 @@ mon_2(Config) when is_list(Config) ->
     %% Start a new node that can load code in this module
     PA = filename:dirname(code:which(?MODULE)),
     {ok, N2} = test_server:start_node
-    (hej2, slave, [{args, "-pa " ++ PA}]),
+    (hej2, slave, [{args, ["-pa", PA]}]),
 
     %% Normal case (named process)
     P7 = start_jeeves({jeeves, N2}),
@@ -556,7 +556,7 @@ list_cleanup(Config) when is_list(Config) ->
 
     %% Start a new node that can load code in this module
     {ok, J} = test_server:start_node
-    (jeeves, slave, [{args, "-pa " ++ PA}]),
+    (jeeves, slave, [{args, ["-pa", PA]}]),
 
     %% Normal remote case, monitor and demonitor
     P3 = start_jeeves({jeeves, J}),
@@ -613,7 +613,7 @@ mixer(Config) when is_list(Config) ->
     PA = filename:dirname(code:which(?MODULE)),
     NN = [j0,j1,j2],
     NL0 = [begin
-               {ok, J} = test_server:start_node(X,slave,[{args, "-pa " ++ PA}]),
+               {ok, J} = test_server:start_node(X,slave,[{args, ["-pa", PA]}]),
                J
            end  || X <- NN],
     NL1 = lists:duplicate(2,node()) ++ NL0,
@@ -769,7 +769,7 @@ otp_5827(Config) when is_list(Config) ->
     end.
 
 monitor_time_offset(Config) when is_list(Config) ->
-    {ok, Node} = start_node(Config, "+C single_time_warp"),
+    {ok, Node} = start_node(Config, ["+C", "single_time_warp"]),
     Me = self(),
     PMs = lists:map(fun (_) ->
                             Pid = spawn(Node,
@@ -988,7 +988,7 @@ start_node(Config, Args) ->
                         ++ integer_to_list(Unique)),
     test_server:start_node(Name,
                            slave,
-                           [{args, "-pa " ++ PA ++ " " ++ Args}]).
+                           [{args, ["-pa", PA] ++ Args}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

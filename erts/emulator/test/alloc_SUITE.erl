@@ -84,14 +84,14 @@ migration(Cfg) ->
     %% Enable test_alloc.
     %% Disable driver_alloc to avoid recursive alloc_util calls
     %% through enif_mutex_create() in my_creating_mbc().
-    drv_case(Cfg, concurrent, "+MZe true +MRe false"),
-    drv_case(Cfg, concurrent, "+MZe true +MRe false +MZas ageffcbf"),
-    drv_case(Cfg, concurrent, "+MZe true +MRe false +MZas chaosff").
+    drv_case(Cfg, concurrent, ["+MZe", "true", "+MRe", "false"]),
+    drv_case(Cfg, concurrent, ["+MZe", "true", "+MRe", "false", "+MZas", "ageffcbf"]),
+    drv_case(Cfg, concurrent, ["+MZe", "true", "+MRe", "false", "+MZas", "chaosff"]).
 
 cpool_opt(Config) when is_list(Config) ->
     OldEnv = clear_env(),
     try
-        {ok, NodeA} = start_node(Config, "+Mue true +Mut true +Muacul de +Mucp @", []),
+        {ok, NodeA} = start_node(Config, ["+Mue", "true", "+Mut", "true", "+Muacul", "de", "+Mucp", "@"], []),
         {cp, '@'} = get_cp_opt(NodeA, binary_alloc),
         {cp, '@'} = get_cp_opt(NodeA, std_alloc),
         {cp, '@'} = get_cp_opt(NodeA, ets_alloc),
@@ -101,7 +101,7 @@ cpool_opt(Config) when is_list(Config) ->
         {cp, '@'} = get_cp_opt(NodeA, driver_alloc),
         {cp, '@'} = get_cp_opt(NodeA, sl_alloc),
         stop_node(NodeA),
-        {ok, NodeB} = start_node(Config, "+Mue true +Mut true +Muacul de +Mucp :", []),
+        {ok, NodeB} = start_node(Config, ["+Mue", "true", "+Mut", "true", "+Muacul", "de", "+Mucp", ":"], []),
         {cp, 'B'} = get_cp_opt(NodeB, binary_alloc),
         {cp, 'D'} = get_cp_opt(NodeB, std_alloc),
         {cp, 'E'} = get_cp_opt(NodeB, ets_alloc),
@@ -111,7 +111,7 @@ cpool_opt(Config) when is_list(Config) ->
         {cp, 'R'} = get_cp_opt(NodeB, driver_alloc),
         {cp, 'S'} = get_cp_opt(NodeB, sl_alloc),
         stop_node(NodeB),
-        {ok, NodeC} = start_node(Config, "+Mue true +Mut true +Muacul de +Mucp : +MEcp H", []),
+        {ok, NodeC} = start_node(Config, ["+Mue", "true", "+Mut", "true", "+Muacul", "de", "+Mucp", ":", "+MEcp", "H"], []),
         {cp, 'B'} = get_cp_opt(NodeC, binary_alloc),
         {cp, 'D'} = get_cp_opt(NodeC, std_alloc),
         {cp, 'H'} = get_cp_opt(NodeC, ets_alloc),
@@ -169,12 +169,12 @@ erts_mmap_do(Config, SCO, SCRPM, SCRFSD) ->
     %% schedulers
     Schldr = erlang:system_info(schedulers_online)+1,
     SCS = max(round((262144 * 6 + 3 * 1048576) * Schldr / 1024 / 1024),100),
-    O1 = "+MMscs" ++ integer_to_list(SCS)
-	++ " +MMsco" ++ atom_to_list(SCO)
-	++ " +MMscrpm" ++ atom_to_list(SCRPM),
+    O1 = ["+MMscs" ++ integer_to_list(SCS),
+	"+MMsco" ++ atom_to_list(SCO),
+	"+MMscrpm" ++ atom_to_list(SCRPM)],
     Opts = case SCRFSD of
 	       0 -> O1;
-	       _ -> O1 ++ " +MMscrfsd"++integer_to_list(SCRFSD)
+	       _ -> O1 ++ ["+MMscrfsd"++integer_to_list(SCRFSD)]
 	   end,
     {ok, Node} = start_node(Config, Opts, []),
     Self = self(),
@@ -512,7 +512,7 @@ start_node_1(Config, Opts, Prog) ->
                  [] -> [];
                  _ -> [{erl,[Prog]}]
              end,
-    test_server:start_node(Name, slave, [{args, Opts++" -pa "++Pa} | ErlArg]).
+    test_server:start_node(Name, slave, [{args, Opts ++ ["-pa", Pa]} | ErlArg]).
 
 stop_node(Node) when Node =:= node() -> ok;
 stop_node(Node) ->

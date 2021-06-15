@@ -996,7 +996,7 @@ lost_pending_connection(Node) ->
 
 dist_entry_gc(Config) when is_list(Config) ->
     Me = self(),
-    {ok, Node} = start_node(get_nodefirstname(), "+zdntgc 0"),
+    {ok, Node} = start_node(get_nodefirstname(), ["+zdntgc", "0"]),
     P = spawn_link(Node,
                    fun () ->
                            LostNode = list_to_atom("lost_pending_connection@" ++ hostname()),
@@ -1122,7 +1122,7 @@ start_node(Name, Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
     Res = test_server:start_node(Name,
                                  slave,
-                                 [{args, "-pa "++Pa++" "++Args}]),
+                                 [{args, ["-pa", Pa] ++ Args}]),
     {ok, Node} = Res,
     rpc:call(Node, erts_debug, set_internal_state,
              [available_internal_state, true]),

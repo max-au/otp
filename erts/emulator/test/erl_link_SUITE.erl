@@ -1214,7 +1214,7 @@ start_node(Name) ->
 
 start_node(Name, Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    Res = test_server:start_node(Name, slave, [{args,  Args ++ " -pa " ++ Pa}]),
+    Res = test_server:start_node(Name, slave, [{args,  Args ++ ["-pa", Pa]}]),
     {ok, Node} = Res,
     rpc:call(Node, erts_debug, set_internal_state,
              [available_internal_state, true]),

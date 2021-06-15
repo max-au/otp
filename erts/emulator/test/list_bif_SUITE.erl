@@ -143,7 +143,7 @@ t_list_to_ref(Config) when is_list(Config) ->
 
 %% Test list_to_pid/port/ref for external pids/ports/refs.
 t_list_to_ext_pidportref(Config) when is_list(Config) ->
-    {ok, Node} = slave:start(net_adm:localhost(), t_list_to_ext_pidportref),
+    {ok, Node} = peer:start_link(#{name => ?FUNCTION_NAME}),
     Pid = rpc:call(Node, erlang, self, []),
     Port = hd(rpc:call(Node, erlang, ports, [])),
     Ref = rpc:call(Node, erlang, make_ref, []),
@@ -195,7 +195,7 @@ t_list_to_ext_pidportref(Config) when is_list(Config) ->
     true = rpc:call(Node, erlang, '=:=', [Ref, Ref0]),
     true = rpc:call(Node, erlang, '==',  [Ref, Ref0]),
 
-    slave:stop(Node),
+    peer:stop(Node),
     ok.
 
 -define(NEW_PID_EXT, 88).

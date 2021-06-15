@@ -222,11 +222,11 @@ win_massive(Config) when is_list(Config) ->
 do_win_massive() ->
     ct:timetrap({minutes, 6}),
     SuiteDir = filename:dirname(code:which(?MODULE)),
-    Ports = " +Q 8192",
+    Ports = ["+Q", "8192"],
     {ok, Node} =
     test_server:start_node(win_massive,
                            slave,
-                           [{args, " -pa " ++ SuiteDir ++ Ports}]),
+                           [{args, ["-pa", SuiteDir] ++ Ports}]),
     ok = rpc:call(Node,?MODULE,win_massive_client,[3000]),
     test_server:stop_node(Node),
     ok.
@@ -739,7 +739,7 @@ iter_max_ports_test(Config) ->
     %% Run on a different node in order to limit the effect if this test fails.
     Dir = filename:dirname(code:which(?MODULE)),
     {ok,Node} = test_server:start_node(test_iter_max_socks,slave,
-                                       [{args,"+Q 2048 -pa " ++ Dir}]),
+                                       [{args,["+Q", "2048", "-pa", Dir]}]),
     L = rpc:call(Node,?MODULE,do_iter_max_ports,[Iters, Command]),
     test_server:stop_node(Node),
 
@@ -1288,7 +1288,7 @@ otp_3906(Config, OSName) ->
             Prog = otp_3906_make_prog(CC, PrivDir),
             {ok, Node} = test_server:start_node(otp_3906,
                                                 slave,
-                                                [{args, " -pa " ++ SuiteDir},
+                                                [{args, ["-pa", SuiteDir]},
                                                  {linked, false}]),
             OP = process_flag(priority, max),
             OTE = process_flag(trap_exit, true),

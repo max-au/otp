@@ -88,11 +88,9 @@ start_slave(Config, Level) ->
     start_slave(ct, Config, Level).
 
 start_slave(NodeName, Config, Level) ->
-    [_,Host] = string:lexemes(atom_to_list(node()), "@"),
-    test_server:format(0, "Trying to start ~s~n",
-		       [atom_to_list(NodeName)++"@"++Host]),
+    test_server:format(0, "Trying to start ~s~n", [NodeName]),
     PR = proplists:get_value(printable_range,Config,io:printable_range()),
-    case slave:start(Host, NodeName, "+pc " ++ atom_to_list(PR)) of
+    case peer:start(#{name => NodeName, args => ["+pc", atom_to_list(PR)]}) of
 	{error,Reason} ->
 	    test_server:fail(Reason);
 	{ok,CTNode} ->
@@ -1455,7 +1453,7 @@ slave_stop(Node) ->
        true -> ok
     end,
     erlang:monitor_node(Node, true),
-    slave:stop(Node),
+    peer:stop(Node),
     receive
 	{nodedown, Node} ->
 	    if Cover -> cover:stop(Node);

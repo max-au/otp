@@ -372,14 +372,14 @@ wait_for_node_started_fun(LSock, Tmo, Cleanup, TI, Self) ->
 %% - the option remote is given when calling test_server:start_node/3
 %%
 start_node_slave(SlaveName, OptList, From, _TI) ->
-    SuppliedArgs = start_node_get_option_value(args, OptList, []),
+    SuppliedArgs = peer:parse_args(start_node_get_option_value(args, OptList, [])),
     Cleanup = start_node_get_option_value(cleanup, OptList, true),
 
     CrashDir = test_server_sup:crash_dump_dir(),
     CrashFile = filename:join([CrashDir,
 			       "erl_crash_dump."++cast_to_list(SlaveName)]),
-    CrashArgs = lists:concat([" -env ERL_CRASH_DUMP \"",CrashFile,"\" "]),
-    Args = lists:concat([" ", SuppliedArgs, CrashArgs]),
+    CrashArgs = ["-env", "ERL_CRASH_DUMP", CrashFile],
+    Args = SuppliedArgs ++ CrashArgs,
 
     Prog0 = start_node_get_option_value(erl, OptList, default),
     Prog = pick_erl_program(Prog0),
@@ -398,7 +398,7 @@ do_start_node_slave(Host0, SlaveName, Args, Prog, Cleanup) ->
 	    _ -> cast_to_list(Host0)
 	end,
     Cmd = Prog ++ " " ++ Args,
-    case slave:start(Host, SlaveName, Args, no_link, Prog) of
+    try peer:start(#{host => Host, name => SlaveName, args => Args, progname => Prog}) of
 	{ok,Nodename} ->
 	    case Cleanup of
 		true -> ets:insert(slave_tab,#slave_info{name=Nodename});
@@ -407,6 +407,9 @@ do_start_node_slave(Host0, SlaveName, Args, Prog, Cleanup) ->
 	    {{ok,Nodename}, Host, Cmd, [], []};
 	Ret ->
 	    {Ret, Host, Cmd}
+    catch
+	exit:timeout ->
+	    {{error, timeout}, Host, Cmd}
     end.
 
 

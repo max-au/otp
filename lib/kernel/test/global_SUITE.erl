@@ -285,8 +285,7 @@ lock_global(Parent, Config) ->
 	    ok
     end,
     io:format("p2: starting slave~n"),
-    {ok, Host} = inet:gethostname(),
-    {ok, N1} = slave:start(Host, node1),
+    {ok, N1} = peer:start_link(#{name => node1}),
     io:format("p2: deleting lock~n"),
     global:del_lock(Id, [node()]),
     io:format("p2: deleted lock~n"),
@@ -299,7 +298,7 @@ lock_global(Parent, Config) ->
     io:format("p2: name ~p~n", [I]),
     ?UNTIL(I =:= rpc:call(N1, global, whereis_name, [foo])),
     I2 = I,
-    slave:stop(N1),
+    peer:stop(N1),
     io:format("p2: name2 ~p~n", [I2]),
     Parent ! {self(), I, I2},
     ok.

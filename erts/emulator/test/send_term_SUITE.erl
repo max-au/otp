@@ -212,14 +212,14 @@ make_expected_ext2term_drv([T|Ts]) ->
 %%
 
 generate_external_terms_files(BaseDir) ->
-    {ok,Node} = slave:start(hostname(), a_node),
+    {ok,Node} = peer:start_link(#{name => ?FUNCTION_NAME}),
     RPid = rpc:call(Node, erlang, self, []),
     true = is_pid(RPid),
     RRef = rpc:call(Node, erlang, make_ref, []),
     true = is_reference(RRef),
     RPort = hd(rpc:call(Node, erlang, ports, [])),
     true = is_port(RPort),
-    slave:stop(Node),
+    peer:stop(Node),
     Terms = [{4711, -4711, [an_atom, "a list"]},
              [1000000000000000000000,-1111111111111111, "blupp!", blipp],
              {RPid, {RRef, RPort}, self(), hd(erlang:ports()), make_ref()},

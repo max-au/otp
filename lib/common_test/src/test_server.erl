@@ -2703,7 +2703,8 @@ stop_node(Slave) ->
     case Result of
 	ok ->
 	    erlang:monitor_node(Slave, true),
-	    slave:stop(Slave),
+	    %% next line is not peer:stop to retain compatibility
+	    rpc:call(Slave, erlang, halt, []),
 	    receive
 		{nodedown, Slave} ->
 		    format(minor, "Stopped slave node: ~w", [Slave]),
@@ -2729,7 +2730,7 @@ stop_node(Slave) ->
 	    case net_adm:ping(Slave)of
 		pong ->
 		    erlang:monitor_node(Slave, true),
-		    slave:stop(Slave),
+		    peer:stop(Slave),
 		    receive
 			{nodedown, Slave} ->
 			    format(minor, "Stopped slave node: ~w", [Slave]),

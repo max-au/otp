@@ -111,7 +111,7 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
-    [slave:stop(N) || N <- nodes()],
+    test_server_ctrl:kill_slavenodes(),
     kill_gen_tcp_dist_test_type_server(),
     ok.
 
@@ -307,7 +307,7 @@ test_node(Name, Illigal, ExtraArgs) ->
     receive
         {nodeup, Node} ->
             net_kernel:monitor_nodes(false),
-            slave:stop(Node),
+            rpc:call(Node, erlang, halt, []),
             started
     after 5000 ->
         net_kernel:monitor_nodes(false),

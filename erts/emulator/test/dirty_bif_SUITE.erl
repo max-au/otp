@@ -216,7 +216,7 @@ dirty_bif_multischedule_exception(Config) when is_list(Config) ->
     end.
 
 dirty_scheduler_exit(Config) when is_list(Config) ->
-    {ok, Node} = start_node(Config, "+SDio 1"),
+    {ok, Node} = start_node(Config, ["+SDio", "1"]),
     [ok] = mcall(Node,
                  [fun() ->
                           %% Perform a dry run to ensure that all required code
@@ -598,7 +598,7 @@ start_node(Config, Args) when is_list(Config) ->
 			++ integer_to_list(erlang:system_time(second))
 			++ "-"
 			++ integer_to_list(erlang:unique_integer([positive]))),
-    test_server:start_node(Name, slave, [{args, "-pa "++Pa++" "++Args}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ Args}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

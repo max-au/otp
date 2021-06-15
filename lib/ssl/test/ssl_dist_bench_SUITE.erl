@@ -166,7 +166,7 @@ init_per_suite(Config) ->
 
 end_per_suite(Config) ->
     ServerNode = proplists:get_value(server_node, Config),
-    slave:stop(ServerNode).
+    peer:stop(ServerNode).
 
 init_per_group(ssl, Config) ->
     [{ssl_dist, true}, {ssl_dist_prefix, "SSL"}|Config];

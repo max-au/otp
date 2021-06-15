@@ -326,10 +326,10 @@ simple(Config) when is_list(Config) ->
     end,
 
     d("simple -> stop ~p", [MGC]),
-    slave:stop(MGC),
+    peer:stop(MGC),
 
     d("simple -> stop ~p", [MG]),
-    slave:stop(MG),
+    peer:stop(MG),
 
     d("simple -> done", []),
     ok.

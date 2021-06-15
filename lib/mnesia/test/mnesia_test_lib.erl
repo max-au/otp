@@ -251,12 +251,10 @@ slave_start_link(Host, Name) ->
 
 slave_start_link(Host, Name, Retries) ->
     Debug = atom_to_list(mnesia:system_info(debug)),
-    Args = "-mnesia debug " ++ Debug ++
-	" -pa " ++
-	filename:dirname(code:which(?MODULE)) ++
-	" -pa " ++
-	filename:dirname(code:which(mnesia)),
-    case starter(Host, Name, Args) of
+    Args = ["-mnesia", "debug", Debug,
+	"-pa", filename:dirname(code:which(?MODULE)),
+	"-pa ",	filename:dirname(code:which(mnesia))],
+    case peer:start_link(#{host => Host, name => Name, args => Args}) of
 	{ok, NewNode} ->
 	    ?match(pong, net_adm:ping(NewNode)),
 	    {ok, Cwd} = file:get_cwd(),
@@ -275,9 +273,6 @@ slave_start_link(Host, Name, Retries) ->
 	    timer:sleep(500),
 	    slave_start_link(Host, Name, Retries - 1)
     end.
-
-starter(Host, Name, Args) ->
-    slave:start(Host, Name, Args).
 
 slave_sup() ->
     process_flag(trap_exit, true),

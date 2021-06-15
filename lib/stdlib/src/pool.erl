@@ -105,7 +105,7 @@ pspawn_link(M, F, A) ->
 
 start_nodes([], _, _) -> [];
 start_nodes([Host|Tail], Name, Args) -> 
-    case slave:start(Host, Name, Args) of 
+    case peer:start(#{host => Host, name => Name, args => peer:parse_args(Args)}) of
 	{error, {already_running, Node}} ->
 	    io:format("Can't start node on host ~w due to ~w~n",[Host, {already_running, Node}]),
 	    [Node | start_nodes(Tail, Name, Args)];

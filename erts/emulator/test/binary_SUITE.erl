@@ -497,7 +497,7 @@ do_t2b_system_limit() ->
                 garbage_collect(),
                 ok
         end,
-    Opts = [{args, "-pa " ++ filename:dirname(code:which(?MODULE))}],
+    Opts = [{args, ["-pa", filename:dirname(code:which(?MODULE))]}],
     {ok,Node} = test_server:start_node(?FUNCTION_NAME, slave, Opts),
     erpc:call(Node, F).
 
@@ -1803,7 +1803,7 @@ cmp_old_impl(Config) when is_list(Config) ->
 	true ->
 	    {ok, Node} = test_server:start_node(list_to_atom(atom_to_list(?MODULE)++"_"++Rel),
 				       peer,
-				       [{args, " -setcookie "++Cookie},
+				       [{args, ["-setcookie", Cookie]},
 					{erl, [{release, Rel}]}]),
 
 	    cmp_node(Node, {erlang, list_to_binary, [list2iolist(mk_list(1))]}),

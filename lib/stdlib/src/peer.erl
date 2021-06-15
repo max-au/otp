@@ -416,6 +416,8 @@ terminate(_Reason, #peer_state{connection = Port, options = Options}) ->
 %% @doc Internal function, parsing command line, with escaping and quoting support.
 parse_args([]) ->
     [];
+parse_args([Deep | _] = AlreadyParsed) when is_list(Deep) ->
+    AlreadyParsed;
 parse_args(CmdLine) ->
     %% following regex splits command line, preserving quoted arguments, into argv[] list
     Re = "((?:\"[^\"\\\\]*(?:\\\\[\\S\\s][^\"\\\\]*)*\"|'[^'\\\\]*(?:\\\\[\\S\\s][^'\\\\]*)*'|\\/[^\\/\\\\]*(?:\\\\[\\S\\s][^\\/\\\\]*)*\\/[gimy]*(?=\\s|$)|(?:\\\\\\s|\\S))+)(?=\\s|$)",

@@ -276,7 +276,7 @@ bound_loop(NS, N, M, Sched) ->
 
 
 -define(TOPOLOGY_A_CMD,
-	"+sct"
+	["+sct"
 	"L0-1t0-1c0p0n0"
 	":L2-3t0-1c1p0n0"
 	":L4-5t0-1c0p1n0"
@@ -284,7 +284,7 @@ bound_loop(NS, N, M, Sched) ->
 	":L8-9t0-1c0p2n1"
 	":L10-11t0-1c1p2n1"
 	":L12-13t0-1c0p3n1"
-	":L14-15t0-1c1p3n1").
+	":L14-15t0-1c1p3n1"]).
 
 -define(TOPOLOGY_A_TERM,
 	[{node,[{processor,[{core,[{thread,{logical,0}},
@@ -305,7 +305,7 @@ bound_loop(NS, N, M, Sched) ->
 				   {thread,{logical,15}}]}]}]}]).
 
 -define(TOPOLOGY_B_CMD,
-	"+sct"
+	["+sct"
 	"L0-1t0-1c0n0p0"
 	":L2-3t0-1c1n0p0"
 	":L4-5t0-1c2n1p0"
@@ -313,7 +313,7 @@ bound_loop(NS, N, M, Sched) ->
 	":L8-9t0-1c0n2p1"
 	":L10-11t0-1c1n2p1"
 	":L12-13t0-1c2n3p1"
-	":L14-15t0-1c3n3p1").
+	":L14-15t0-1c3n3p1"]).
 
 -define(TOPOLOGY_B_TERM,
 	[{processor,[{node,[{core,[{thread,{logical,0}},
@@ -369,7 +369,7 @@ bound_loop(NS, N, M, Sched) ->
 
 
 -define(TOPOLOGY_C_CMD,
-	"+sct"
+	["+sct"
 	"L0-1t0-1c0p0n0"
 	":L2-3t0-1c1p0n0"
 	":L4-5t0-1c0p1n0"
@@ -385,7 +385,7 @@ bound_loop(NS, N, M, Sched) ->
 	":L24-25t0-1c0n4p5"
 	":L26-27t0-1c1n4p5"
 	":L28-29t0-1c2n5p5"
-	":L30-31t0-1c3n5p5").
+	":L30-31t0-1c3n5p5"]).
 
 -define(TOPOLOGY_D_TERM,
 	[{processor,[{node,[{core,[{thread,{logical,0}},
@@ -422,7 +422,7 @@ bound_loop(NS, N, M, Sched) ->
 				   {thread,{logical,31}}]}]}]}]).
 
 -define(TOPOLOGY_D_CMD,
-	"+sct"
+	["+sct"
 	"L0-1t0-1c0n0p0"
 	":L2-3t0-1c1n0p0"
 	":L4-5t0-1c2n1p0"
@@ -438,10 +438,10 @@ bound_loop(NS, N, M, Sched) ->
 	":L24-25t0-1c0p4n5"
 	":L26-27t0-1c1p4n5"
 	":L28-29t0-1c0p5n5"
-	":L30-31t0-1c1p5n5").
+	":L30-31t0-1c1p5n5"]).
 
 -define(TOPOLOGY_E_CMD,
-	"+sct"
+	["+sct"
 	"L0-1t0-1c0p0n0"
 	":L2-3t0-1c1p0n0"
 	":L4-5t0-1c2p0n0"
@@ -449,7 +449,7 @@ bound_loop(NS, N, M, Sched) ->
 	":L8-9t0-1c0p1n1"
 	":L10-11t0-1c1p1n1"
 	":L12-13t0-1c2p1n1"
-	":L14-15t0-1c3p1n1").
+	":L14-15t0-1c3p1n1"]).
 
 -define(TOPOLOGY_E_TERM,
 	[{node,[{processor,[{core,[{thread,{logical,0}},
@@ -470,7 +470,7 @@ bound_loop(NS, N, M, Sched) ->
 				   {thread,{logical,15}}]}]}]}]).
 
 -define(TOPOLOGY_F_CMD,
-	"+sct"
+	["+sct"
 	"L0-1t0-1c0n0p0"
 	":L2-3t0-1c1n0p0"
 	":L4-5t0-1c2n0p0"
@@ -486,7 +486,7 @@ bound_loop(NS, N, M, Sched) ->
 	":L24-25t0-1c12n3p0"
 	":L26-27t0-1c13n3p0"
 	":L28-29t0-1c14n3p0"
-	":L30-31t0-1c15n3p0").
+	":L30-31t0-1c15n3p0"]).
 
 -define(TOPOLOGY_F_TERM,
         [{processor,[{node,[{core,[{thread,{logical,0}},
@@ -716,11 +716,11 @@ cpu_topology(Config) when is_list(Config) ->
                               {core,{logical,5}}]}]},
            {processor,[{node,[{core,{logical,6}},
                               {core,{logical,7}}]}]}],
-          "+sct "
+          ["+sct",
           "L0-1c0-1p0n0"
           ":L2-3c0-1n1p1"
           ":L4-5c0-1p2n2"
-          ":L6-7c0-1n3p3"),
+          ":L6-7c0-1n3p3"]),
         cpu_topology_test(
           Config,
           [{node,[{processor,[{core,{logical,0}},
@@ -739,7 +739,7 @@ cpu_topology(Config) when is_list(Config) ->
                               {core,{logical,13}}]},
                        {node,[{core,{logical,14}},
                               {core,{logical,15}}]}]}],
-          "+sct "
+          ["+sct",
           "L0-1c0-1p0n0"
           ":L2-3c0-1p1n0"
           ":L4-5c0-1n1p2"
@@ -747,7 +747,7 @@ cpu_topology(Config) when is_list(Config) ->
           ":L8-9c0-1p3n3"
           ":L10-11c0-1p4n3"
           ":L12-13c0-1n4p5"
-          ":L14-15c2-3n5p5"),
+          ":L14-15c2-3n5p5"]),
         cpu_topology_test(
           Config,
           [{node,[{processor,[{core,{logical,0}},
@@ -762,13 +762,13 @@ cpu_topology(Config) when is_list(Config) ->
                               {core,{logical,9}}]}]},
            {processor,[{node,[{core,{logical,10}},
                               {core,{logical,11}}]}]}],
-          "+sct "
+          ["+sct",
           "L0-1c0-1p0n0"
           ":L2-3c0-1n1p1"
           ":L4-5c0-1n2p2"
           ":L6-7c0-1p3n3"
           ":L8-9c0-1p4n4"
-          ":L10-11c0-1n5p5")
+          ":L10-11c0-1n5p5"])
     after
         restore_erl_rel_flags(OldRelFlags)
     end,
@@ -1031,10 +1031,10 @@ sbt_make_topology_args() ->
                 linux ->
                     case erlang:system_info(logical_processors) of
                         1 ->
-                            "+sctL0";
+                            ["+sctL0"];
                         N ->
                             NS = integer_to_list(N - 1),
-                            "+sctL0-"++NS++"p0-"++NS
+                            ["+sctL0-"++NS++"p0-"++NS]
                     end;
                 _ ->
                     false
@@ -1081,7 +1081,7 @@ sbt_check_prereqs() ->
 sbt_test(Config, CpuTCmd, ClBt, Bt, LP) ->
     io:format("Testing +sbt ~s (~p)~n", [ClBt, Bt]),
     LPS = integer_to_list(LP),
-    Cmd = CpuTCmd++" +sbt "++ClBt++" +S"++LPS++":"++LPS,
+    Cmd = CpuTCmd++["+sbt", ClBt, "+S"++LPS++":"++LPS],
     {ok, Node} = start_node(Config, Cmd),
     Bt = rpc:call(Node,
 			erlang,
@@ -1115,7 +1115,7 @@ scheduler_threads(Config) when is_list(Config) ->
     %% the scheduler threads online.
     {HalfSched, HalfSchedOnln} = {lists:max([1,Sched div 2]),
                                   lists:max([1,SchedOnln div 2])},
-    {HalfSched, HalfSchedOnln, _} = get_sstate(Config, "+SP 50:50"),
+    {HalfSched, HalfSchedOnln, _} = get_sstate(Config, ["+SP", "50:50"]),
     %% Use +S to configure 4x the number of scheduler threads and
     %% 4x the number of scheduler threads online, but alter that
     %% setting using +SP to 50% scheduler threads and 25% scheduler
@@ -1124,19 +1124,19 @@ scheduler_threads(Config) when is_list(Config) ->
     TwiceSched = Sched*2,
     FourSched = integer_to_list(Sched*4),
     FourSchedOnln = integer_to_list(SchedOnln*4),
-    CombinedCmd1 = "+S "++FourSched++":"++FourSchedOnln++" +SP50:25",
+    CombinedCmd1 = ["+S", FourSched++":"++FourSchedOnln, "+SP50:25"],
     {TwiceSched, SchedOnln, _} = get_sstate(Config, CombinedCmd1),
     %% Now do the same test but with the +S and +SP options in the
     %% opposite order, since order shouldn't matter.
-    CombinedCmd2 = "+SP50:25 +S "++FourSched++":"++FourSchedOnln,
+    CombinedCmd2 = ["+SP50:25", "+S", FourSched++":"++FourSchedOnln],
     {TwiceSched, SchedOnln, _} = get_sstate(Config, CombinedCmd2),
     %% Apply two +SP options to make sure the second overrides the first
-    TwoCmd = "+SP 25:25 +SP 100:100",
+    TwoCmd = ["+SP", "25:25", "+SP", "100:100"],
     {Sched, SchedOnln, _} = get_sstate(Config, TwoCmd),
     %% Configure 50% of scheduler threads online only
-    {Sched, HalfSchedOnln, _} = get_sstate(Config, "+SP:50"),
+    {Sched, HalfSchedOnln, _} = get_sstate(Config, ["+SP:50"]),
     %% Configure 2x scheduler threads only
-    {TwiceSched, SchedOnln, _} = get_sstate(Config, "+SP 200"),
+    {TwiceSched, SchedOnln, _} = get_sstate(Config, ["+SP", "200"]),
 
     LProc = erlang:system_info(logical_processors),
     LProcAvail = erlang:system_info(logical_processors_available),
@@ -1163,7 +1163,7 @@ scheduler_threads(Config) when is_list(Config) ->
 
 st_reset(Config, LProc, ExpectedOnln, FourSched, FourSchedOnln) ->
     %% Test resetting # of schedulers.
-    ResetCmd = "+S "++FourSched++":"++FourSchedOnln++" +S 0:0",
+    ResetCmd = ["+S", FourSched++":"++FourSchedOnln, "+S", "0:0"],
     {LProc, ExpectedOnln, _} = get_sstate(Config, ResetCmd),
     ok.
 
@@ -1171,9 +1171,9 @@ st_reduced(Config, LProc, ExpectedOnln) ->
     %% Test negative +S settings
     SchedMinus1 = LProc-1,
     SchedOnlnMinus1 = ExpectedOnln-1,
-    {SchedMinus1, SchedOnlnMinus1, _} = get_sstate(Config, "+S -1"),
-    {LProc, SchedOnlnMinus1, _} = get_sstate(Config, "+S :-1"),
-    {SchedMinus1, SchedOnlnMinus1, _} = get_sstate(Config, "+S -1:-1"),
+    {SchedMinus1, SchedOnlnMinus1, _} = get_sstate(Config, ["+S", "-1"]),
+    {LProc, SchedOnlnMinus1, _} = get_sstate(Config, ["+S", ":-1"]),
+    {SchedMinus1, SchedOnlnMinus1, _} = get_sstate(Config, ["+S", "-1:-1"]),
     ok.
 
 st_expected_onln(LProcAvail, unknown) -> LProcAvail;
@@ -1189,12 +1189,12 @@ dirty_scheduler_threads_test(Config) ->
     {Sched, SchedOnln, _} = get_dsstate(Config, ""),
     {HalfSched, HalfSchedOnln} = {lists:max([1,Sched div 2]),
                                   lists:max([1,SchedOnln div 2])},
-    Cmd1 = "+SDcpu "++integer_to_list(HalfSched)++":"++
-	integer_to_list(HalfSchedOnln),
+    Cmd1 = ["+SDcpu", integer_to_list(HalfSched)++":"++
+	integer_to_list(HalfSchedOnln)],
     {HalfSched, HalfSchedOnln, _} = get_dsstate(Config, Cmd1),
-    {HalfSched, HalfSchedOnln, _} = get_dsstate(Config, "+SDPcpu 50:50"),
+    {HalfSched, HalfSchedOnln, _} = get_dsstate(Config, ["+SDPcpu", "50:50"]),
     IOSched = 20,
-    {_, _, IOSched} = get_dsstate(Config, "+SDio "++integer_to_list(IOSched)),
+    {_, _, IOSched} = get_dsstate(Config, ["+SDio", integer_to_list(IOSched)]),
     {ok, Node} = start_node(Config, ""),
     [ok] = mcall(Node, [fun() -> dirty_schedulers_online_test() end]),
     ok.
@@ -1360,7 +1360,7 @@ scheduler_suspend_test(Config, Schedulers) ->
 			"";
 		    _ ->
 			S = integer_to_list(Schedulers),
-			"+S"++S++":"++S
+			["+S"++S++":"++S]
 		end,
     {ok, Node} = start_node(Config, Cmd),
     [SState] = mcall(Node, [fun () ->
@@ -1497,44 +1497,44 @@ poll_threads(Config) when is_list(Config) ->
     {Conc, PollType, KP} = get_ioconfig(Config),
     {Sched, SchedOnln, _} = get_sstate(Config, ""),
 
-    [1, 1] = get_ionum(Config,"+IOt 2 +IOp 2"),
-    [1, 1, 1, 1, 1] = get_ionum(Config,"+IOt 5 +IOp 5"),
-    [1, 1] = get_ionum(Config, "+S 2 +IOPt 100 +IOPp 100"),
+    [1, 1] = get_ionum(Config,["+IOt", "2", "+IOp", "2"]),
+    [1, 1, 1, 1, 1] = get_ionum(Config,["+IOt", "5", "+IOp", "5"]),
+    [1, 1] = get_ionum(Config, ["+S", "2", "+IOPt", "100", "+IOPp", "100"]),
 
     if
         Conc ->
 
-            [5] = get_ionum(Config,"+IOt 5 +IOp 1"),
-            [3, 2] = get_ionum(Config,"+IOt 5 +IOp 2"),
-            [2, 2, 2, 2, 2] = get_ionum(Config,"+IOt 10 +IOPp 50"),
+            [5] = get_ionum(Config,["+IOt", "5", "+IOp", "1"]),
+            [3, 2] = get_ionum(Config,["+IOt", "5", "+IOp", "2"]),
+            [2, 2, 2, 2, 2] = get_ionum(Config,["+IOt", "10", "+IOPp", "50"]),
 
-            [2] = get_ionum(Config, "+S 2 +IOPt 100"),
-            [4] = get_ionum(Config, "+S 4 +IOPt 100"),
-            [4] = get_ionum(Config, "+S 4:2 +IOPt 100"),
-            [4, 4] = get_ionum(Config, "+S 8 +IOPt 100 +IOPp 25"),
+            [2] = get_ionum(Config, ["+S", "2", "+IOPt", "100"]),
+            [4] = get_ionum(Config, ["+S", "4", "+IOPt", "100"]),
+            [4] = get_ionum(Config, ["+S", "4:2", "+IOPt", "100"]),
+            [4, 4] = get_ionum(Config, ["+S", "8", "+IOPt", "100", "+IOPp", "25"]),
 
-            fail = get_ionum(Config, "+IOt 1 +IOp 2"),
+            fail = get_ionum(Config, ["+IOt", "1", "+IOp", "2"]),
 
             ok;
         not Conc ->
 
-            [1, 1, 1, 1, 1] = get_ionum(Config,"+IOt 5 +IOp 1"),
-            [1, 1, 1, 1, 1] = get_ionum(Config,"+IOt 5 +IOp 2"),
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] = get_ionum(Config,"+IOt 10 +IOPp 50"),
+            [1, 1, 1, 1, 1] = get_ionum(Config,["+IOt", "5", "+IOp", "1"]),
+            [1, 1, 1, 1, 1] = get_ionum(Config,["+IOt", "5", "+IOp", "2"]),
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] = get_ionum(Config,["+IOt", "10", "+IOPp", "50"]),
 
-            [1, 1] = get_ionum(Config, "+S 2 +IOPt 100"),
-            [1, 1, 1, 1] = get_ionum(Config, "+S 4 +IOPt 100"),
-            [1, 1, 1, 1] = get_ionum(Config, "+S 4:2 +IOPt 100"),
-            [1, 1, 1, 1, 1, 1, 1, 1] = get_ionum(Config, "+S 8 +IOPt 100 +IOPp 25"),
+            [1, 1] = get_ionum(Config, ["+S", "2", "+IOPt", "100"]),
+            [1, 1, 1, 1] = get_ionum(Config, ["+S", "4", "+IOPt", "100"]),
+            [1, 1, 1, 1] = get_ionum(Config, ["+S", "4:2", "+IOPt", "100"]),
+            [1, 1, 1, 1, 1, 1, 1, 1] = get_ionum(Config, ["+S", "8", "+IOPt", "100"  "+IOPp", "25"]),
 
-            [1] = get_ionum(Config, "+IOt 1 +IOp 2"),
+            [1] = get_ionum(Config, ["+IOt", "1", "+IOp", "2"]),
 
             ok
     end,
 
-    fail = get_ionum(Config, "+IOt 1 +IOPp 101"),
-    fail = get_ionum(Config, "+IOt 0"),
-    fail = get_ionum(Config, "+IOPt 101"),
+    fail = get_ionum(Config, ["+IOt", "1", "+IOPp", "101"]),
+    fail = get_ionum(Config, ["+IOt", "0"]),
+    fail = get_ionum(Config, ["+IOPt", "101"]),
 
     ok.
 
@@ -2494,7 +2494,7 @@ start_node(Config, Args) when is_list(Config) ->
 			++ integer_to_list(erlang:system_time(second))
 			++ "-"
 			++ integer_to_list(erlang:unique_integer([positive]))),
-    test_server:start_node(Name, slave, [{args, "-pa "++Pa++" "++Args}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ Args}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

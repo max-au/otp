@@ -244,7 +244,7 @@ start_node(Config) ->
 			++ "-" ++ integer_to_list(erlang:system_time(second))
 			++ "-" ++ integer_to_list(erlang:unique_integer([positive]))),
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args,  "-pa " ++ Pa}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa]}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

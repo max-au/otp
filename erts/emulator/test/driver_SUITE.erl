@@ -178,9 +178,9 @@ end_per_suite(_Config) ->
     catch erts_debug:set_internal_state(available_internal_state, false).
 
 init_per_group(poll_thread, Config) ->
-    [{node_args, "+IOt 2"} | Config];
+    [{node_args, ["+IOt", "2"]} | Config];
 init_per_group(poll_set, Config) ->
-    [{node_args, "+IOt 2 +IOp 2"} | Config];
+    [{node_args, ["+IOt", "2", "+IOp", "2"]} | Config];
 init_per_group(polling, Config) ->
     case proplists:get_value(node_args, Config) of
         undefined ->
@@ -2748,7 +2748,7 @@ start_node(NodeName, Args) ->
     start_node_final(Name, Args).
 start_node_final(Name, Args) ->
     {ok, Pwd} = file:get_cwd(),
-    FinalArgs = [Args, " -pa ", filename:dirname(code:which(?MODULE))],
+    FinalArgs = Args ++ ["-pa", filename:dirname(code:which(?MODULE))],
     {ok, Node} = test_server:start_node(Name, slave, [{args, FinalArgs}]),
     LogPath = Pwd ++ "/error_log." ++ atom_to_list(Name),
     ct:pal("Logging to: ~s", [LogPath]),

@@ -322,12 +322,13 @@ parse({node, N, A, T1}=T) when is_atom(N) ->
 %% 			       end,
 %% 			   ?debugVal({started, StartedNet}),
 			   {Name, Host} = eunit_lib:split_node(N),
-			   {ok, Node} = slave:start_link(Host, Name, A),
+			   {ok, Node} = peer:start_link(#{host => Host,
+				name => Name, args => peer:parse_args(A)}),
 			   {Node, StartedNet}
 		   end,
 		   fun ({Node, StopNet}) ->
 %% 			   ?debugVal({stop, StopNet}),
-			   slave:stop(Node),
+			   peer:stop(Node),
 			   case StopNet of
 			       true -> net_kernel:stop();
 			       false -> ok

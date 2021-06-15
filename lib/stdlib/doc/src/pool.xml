@@ -32,13 +32,13 @@
   <modulesummary>Load distribution facility.</modulesummary>
   <description>
     <p>This module can be used to run a set of Erlang nodes as a pool
-      of computational processors. It is organized as a master and a
-      set of slave nodes and includes the following features:</p>
+      of computational processors. It is organized as an origin and a
+      set of peer nodes and includes the following features:</p>
 
     <list type="bulleted">
-      <item>The slave nodes send regular reports to the master about
+      <item>The peer nodes send regular reports to the origin about
         their current load.</item>
-      <item>Queries can be sent to the master to determine which node
+      <item>Queries can be sent to the origin to determine which node
         will have the least load.</item>
     </list>
 
@@ -46,19 +46,19 @@
       future loads. It returns the length of the queue of ready to run
       processes in the Erlang runtime system.</p>
 
-    <p>The slave nodes are started with the
-      <seeerl marker="slave"><c>slave(3)</c></seeerl> module. This
+    <p>The peer nodes are started with the
+      <seeerl marker="peer"><c>peer(3)</c></seeerl> module. This
       effects terminal I/O, file I/O, and code loading.</p>
-    <p>If the master node fails, the entire pool exits.</p>
+    <p>If the origin node fails, the entire pool exits.</p>
   </description>
 
   <funcs>
     <func>
       <name name="attach" arity="1" since=""/>
-      <fsummary>Ensure that a pool master is running.</fsummary>
+      <fsummary>Ensure that a pool origin is running.</fsummary>
       <desc>
-        <p>Ensures that a pool master is running and includes
-          <c><anno>Node</anno></c> in the pool master's pool of nodes.</p>
+        <p>Ensures that a pool origin is running and includes
+          <c><anno>Node</anno></c> in the pool origin's pool of nodes.</p>
       </desc>
     </func>
 
@@ -108,8 +108,8 @@
           find host names where the pool nodes can be started; see
           section <seeerl marker="#files">Files</seeerl>. The
           startup procedure fails if the file is not found.</p>
-        <p>The slave nodes are started with
-          <seemfa marker="slave#start/2"><c>slave:start/2,3</c></seemfa>,
+        <p>The peer nodes are started with
+          <seemfa marker="peer#start/1"><c>peer:start/1</c></seemfa>,
           passing along <c><anno>Name</anno></c> and, if provided,
           <c><anno>Args</anno></c>. <c><anno>Name</anno></c> is used as the
           first part of the node names, <c><anno>Args</anno></c> is used to
@@ -123,9 +123,9 @@
 
     <func>
       <name name="stop" arity="0" since=""/>
-      <fsummary>Stop the pool and kill all the slave nodes.</fsummary>
+      <fsummary>Stop the pool and all peer nodes.</fsummary>
       <desc>
-        <p>Stops the pool and kills all the slave nodes.</p>
+        <p>Stops the pool and all peer nodes.</p>
       </desc>
     </func>
   </funcs>
@@ -137,8 +137,8 @@
       be started. For information about format and location of this file, see
       <seemfa marker="kernel:net_adm#host_file/0">
       <c>net_adm:host_file/0</c></seemfa>.</p>
-    <p><c>$HOME/.erlang.slave.out.HOST</c> is used for all extra I/O
-      that can come from the slave nodes on standard I/O. If the startup
+    <p><c>$HOME/.erlang.peer.out.HOST</c> is used for all extra I/O
+      that can come from the peer nodes on standard I/O. If the startup
       procedure does not work, this file can indicate the reason.</p>
   </section>
 </erlref>

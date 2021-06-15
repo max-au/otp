@@ -38,9 +38,9 @@ setup(Name) ->
 		   RemHost
 	   end,
     Node = list_to_atom(atom_to_list(Name) ++ "@" ++ Host),
-    SlaveArgs = case init:get_argument(pa) of
+    Args = case init:get_argument(pa) of
 	       {ok, PaPaths} ->
-		   lists:append([" -pa " ++ P || [P] <- PaPaths]);
+                   lists:concat([["-pa", P] || [P] <- PaPaths]);
 	       _ -> []
 	   end,
     %% ct:pal("Slave args: ~p~n",[SlaveArgs]),
@@ -55,7 +55,7 @@ setup(Name) ->
 	pong -> ok;
 	pang ->
 	    {ok, Node} =
-                slave:start(Host, Name, SlaveArgs, no_link, Prog)
+                peer:start(#{host => Host, name => Name, args => Args, progname => Prog})
     end,
     Path = code:get_path(),
     true = rpc:call(Node, code, set_path, [Path]),

@@ -183,7 +183,7 @@ start_node(Config) ->
 start_node(Config, Args) when is_list(Config) ->
     Pa = filename:dirname(code:which(?MODULE)),
     Name = make_nodename(Config),
-    test_server:start_node(Name, slave, [{args, "-pa "++Pa++" "++Args}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ Args}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

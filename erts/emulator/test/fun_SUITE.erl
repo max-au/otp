@@ -872,7 +872,7 @@ start_node(Name) ->
     Pa = filename:dirname(code:which(?MODULE)),
     Cookie = atom_to_list(erlang:get_cookie()),
     test_server:start_node(Name, slave, 
-			   [{args, "-setcookie " ++ Cookie ++" -pa " ++ Pa}]).
+			   [{args, ["-setcookie", Cookie, "-pa", Pa]}]).
 
 wait_until(Fun) ->
     case catch Fun() of

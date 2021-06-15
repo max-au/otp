@@ -1740,7 +1740,7 @@ processes_large_tab_test(Config) ->
 			    false -> ProcTabSize3
 			end,
     {ok, LargeNode} = start_node(Config,
-				       "+P " ++ integer_to_list(ProcTabSize)),
+				       ["+P", integer_to_list(ProcTabSize)]),
     Res = rpc:call(LargeNode, ?MODULE, processes_bif_test, []),
     case rpc:call(LargeNode,
 			erts_debug,
@@ -1763,7 +1763,7 @@ processes_default_tab_test(Config) ->
     chk_processes_bif_test_res(Res).
 
 processes_small_tab(Config) when is_list(Config) ->
-    {ok, SmallNode} = start_node(Config, "+P 1024"),
+    {ok, SmallNode} = start_node(Config, ["+P", "1024"]),
     Res    = rpc:call(SmallNode, ?MODULE, processes_bif_test, []),
     PBInfo = rpc:call(SmallNode, erts_debug, get_internal_state, [processes_bif_info]),
     stop_node(SmallNode),
@@ -3116,7 +3116,7 @@ spawn_old_node(Config) when is_list(Config) ->
         true ->
 	    {ok, OldNode} = test_server:start_node(make_nodename(Config),
                                                    peer,
-                                                   [{args, " -setcookie "++Cookie},
+                                                   [{args, ["-setcookie", Cookie]},
                                                     {erl, [{release, Rel}]}]),
             try
                 %% Spawns triggering a new connection; which
@@ -3139,7 +3139,7 @@ spawn_new_node(Config) when is_list(Config) ->
     %% works as expected on current OTP...
     {ok, CurrNode} = test_server:start_node(make_nodename(Config),
                                             peer,
-                                            [{args, " -setcookie "++Cookie}]),
+                                            [{args, ["-setcookie", Cookie]}]),
     try
         %% Spawns triggering a new connection; which
         %% will trigger hopeful data transcoding
@@ -3357,8 +3357,8 @@ processes_term_proc_list(Config) when is_list(Config) ->
     %% We have to run this test case with +S1 since instrument:allocations()
     %% will report a free()'d block as present until it's actually deallocated
     %% by its employer.
-    Run("+MSe true +Muatags false +S1"),
-    Run("+MSe true +Muatags true +S1"),
+    Run(["+MSe", "true", "+Muatags", "false", "+S1"]),
+    Run(["+MSe", "true", "+Muatags", "true", "+S1"]),
 
     ok.
 
@@ -4423,7 +4423,7 @@ start_node(Config) ->
 start_node(Config, Args) when is_list(Config) ->
     Pa = filename:dirname(code:which(?MODULE)),
     Name = make_nodename(Config),
-    test_server:start_node(Name, slave, [{args, "-pa "++Pa++" "++Args}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ Args}]).
 
 stop_node(Node) ->
     verify_nc(node()),

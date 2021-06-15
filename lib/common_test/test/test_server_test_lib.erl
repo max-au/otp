@@ -43,11 +43,8 @@ pre_init_per_testcase(_TC,Config,State) ->
     {start_slave(Config, 50),State}.
 
 start_slave(Config,_Level) ->
-    [_,Host] = string:lexemes(atom_to_list(node()), "@"),
-    
-    ct:log("Trying to start ~s~n", 
-	   ["test_server_tester@"++Host]),
-    case slave:start(Host, test_server_tester, []) of
+    ct:log("Trying to start test_server_tester~n"),
+    case peer:start(#{name => test_server_tester}) of
 	{error,Reason} ->
 	    test_server:fail(Reason);
 	{ok,Node} ->
@@ -96,7 +93,7 @@ post_end_per_testcase(_TC, Config, Return, State) ->
        true -> ok
     end,
     erlang:monitor_node(Node, true),
-    slave:stop(Node),
+    peer:stop(Node),
     receive
 	{nodedown, Node} ->
 	    if Cover -> cover:stop(Node);

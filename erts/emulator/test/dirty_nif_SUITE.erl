@@ -144,7 +144,7 @@ nif_raise_exceptions(NifFunc) ->
                 end, ok, ExcTerms).
 
 dirty_scheduler_exit(Config) when is_list(Config) ->
-    {ok, Node} = start_node(Config, "+SDio 1"),
+    {ok, Node} = start_node(Config, ["+SDio", "1"]),
     Path = proplists:get_value(data_dir, Config),
     NifLib = filename:join(Path, atom_to_list(?MODULE)),
     [ok] = mcall(Node,
@@ -562,7 +562,7 @@ start_node(Config, Args) when is_list(Config) ->
 			++ integer_to_list(erlang:system_time(second))
 			++ "-"
 			++ integer_to_list(erlang:unique_integer([positive]))),
-    test_server:start_node(Name, slave, [{args, "-pa "++Pa++" "++Args}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ Args}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

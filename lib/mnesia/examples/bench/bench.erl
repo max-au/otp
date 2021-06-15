@@ -159,9 +159,9 @@ start_all(Args) ->
 do_start_all([Node | Nodes], Acc, Cookie) when is_atom(Node) ->    
     case string:tokens(atom_to_list(Node), [$@]) of
 	[Name, Host] ->
-	    Arg = lists:concat(["-setcookie ", Cookie]),
+	    Args = ["-setcookie ", Cookie],
 	    ?d("    ~s", [left(Node)]),
-	    case slave:start_link(Host, Name, Arg) of
+	    case peer:start_link(#{host => Host, name => Name, arg => Args}) of
 		{ok, Node} ->
 		    load_modules(Node),
 		    rpc:call(Node, ?MODULE, bind_schedulers, []),
@@ -208,7 +208,7 @@ stop_slave_nodes(Nodes) ->
 
 do_stop_slave_nodes([Node | Nodes]) ->
     ?d("    ~s", [left(Node)]),
-    Res = slave:stop(Node),
+    Res = peer:stop(Node),
     io:format(" ~p~n", [Res]),
     do_stop_slave_nodes(Nodes);
 do_stop_slave_nodes([]) ->

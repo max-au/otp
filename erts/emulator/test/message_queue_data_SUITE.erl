@@ -53,11 +53,11 @@ basic(Config) when is_list(Config) ->
 
     basic_test(erlang:system_info(message_queue_data)),
 
-    {ok, Node1} = start_node(Config, "+hmqd off_heap"),
+    {ok, Node1} = start_node(Config, ["+hmqd", "off_heap"]),
     ok = rpc:call(Node1, ?MODULE, basic_test, [off_heap]),
     stop_node(Node1),
 
-    {ok, Node2} = start_node(Config, "+hmqd on_heap"),
+    {ok, Node2} = start_node(Config, ["+hmqd", "on_heap"]),
     ok = rpc:call(Node2, ?MODULE, basic_test, [on_heap]),
     stop_node(Node2),
 
@@ -336,7 +336,7 @@ start_node(Config, Opts) when is_list(Config), is_list(Opts) ->
 			++ integer_to_list(erlang:system_time(second))
 			++ "-"
 			++ integer_to_list(erlang:unique_integer([positive]))),
-    test_server:start_node(Name, slave, [{args, Opts++" -pa "++Pa}]).
+    test_server:start_node(Name, slave, [{args, Opts ++ ["-pa", Pa]}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

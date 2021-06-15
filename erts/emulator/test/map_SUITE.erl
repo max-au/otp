@@ -3260,7 +3260,7 @@ t_hash_entropy(Config) when is_list(Config)  ->
 %% causing heap fragments to be allocated.
 t_gc_rare_map_overflow(Config) when is_list(Config) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    {ok, Node} = test_server:start_node(gc_rare_map_overflow, slave, [{args, "-pa \""++Pa++"\""}]),
+    {ok, Node} = test_server:start_node(gc_rare_map_overflow, slave, [{args, ["-pa", Pa]}]),
     erts_debug:set_internal_state(available_internal_state, true),
     try
 	Echo = spawn_link(Node, fun Loop() -> receive {From,Msg} -> From ! Msg

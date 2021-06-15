@@ -1113,7 +1113,7 @@ start_node(Name) ->
     Pa = filename:dirname(code:which(?MODULE)),
     Cookie = atom_to_list(erlang:get_cookie()),
     test_server:start_node(Name, slave, 
-                           [{args, "-setcookie " ++ Cookie ++" -pa " ++ Pa}]).
+                           [{args, ["-setcookie", Cookie, "-pa", Pa]}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

@@ -157,7 +157,7 @@ start_node(Config, Args) when is_list(Config) ->
 	      ++ integer_to_list(erlang:system_time(second))
 	      ++ "-"
 	      ++ integer_to_list(erlang:unique_integer([positive]))),
-    Opts = [{args, "-pa "++Pa++" "++Args}],
+    Opts = [{args, ["-pa", Pa] ++Args}],
     test_server:start_node(Name, slave, Opts).
 
 stop_node(Node) ->

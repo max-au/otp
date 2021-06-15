@@ -54,7 +54,7 @@ iter_max_files_1(Config) ->
     %% Run on a different node in order to make the test more stable.
     Dir = filename:dirname(code:which(?MODULE)),
     {ok,Node} = test_server:start_node(test_iter_max_files,slave,
-                                       [{args,"-pa " ++ Dir}]),
+                                       [{args, ["-pa", Dir]}]),
     L = rpc:call(Node,?MODULE,do_iter_max_files,[N, TestFile]),
     test_server:stop_node(Node),
     io:format("Number of files opened in each test:~n~w\n", [L]),

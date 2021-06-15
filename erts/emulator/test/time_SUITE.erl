@@ -110,7 +110,7 @@ local_to_univ_utc(Config) when is_list(Config) ->
 	    %% TZ variable has a meaning
 	    {ok, Node} =
 		test_server:start_node(local_univ_utc,peer,
-				       [{args, "-env TZ UTC"}]),
+				       [{args, ["-env", "TZ", "UTC"]}]),
 	    {{2008,8,1},{0,0,0}} =
 		rpc:call(Node,
 			 erlang,localtime_to_universaltime,
@@ -464,8 +464,8 @@ check_time_warp_mode(Config, TimeCorrection, TimeWarpMode) ->
     Start = erlang:monotonic_time(1000),
     MonotonicityTimeout = 2000,
     {ok, Node} = start_node(Config,
-			    "+c " ++ atom_to_list(TimeCorrection)
-			    ++ " +C " ++ atom_to_list(TimeWarpMode)),
+			    ["+c", atom_to_list(TimeCorrection),
+			     "+C", atom_to_list(TimeWarpMode)]),
     StartTime = rpc:call(Node, erlang, system_info, [start_time]),
     Me = self(),
     MonotincityTestStarted = make_ref(),
@@ -1007,7 +1007,7 @@ start_node(Config, Args) ->
 			++ integer_to_list(Unique)),
     test_server:start_node(Name,
 			   slave,
-			   [{args, "-pa " ++ PA ++ " " ++ Args}]).
+			   [{args, ["-pa", PA] ++ Args}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

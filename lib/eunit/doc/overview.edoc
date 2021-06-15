@@ -967,7 +967,7 @@ detail below.
 <dd>`node' is like `setup', but with a built-in behaviour: it starts a
 slave node for the duration of the tests. The atom `Node' should have
 the format `nodename@full.machine.name', and `Args' are the optional
-arguments to the new node; see `slave:start_link/3' for details.
+arguments to the new node; see `peer:start_link/1' for details.
 </dd>
 <dt>`{foreach, Where, Setup, Cleanup, [Tests | Instantiator]}'</dt>
 <dt>`{foreach, Setup, Cleanup, [Tests | Instantiator]}'</dt>

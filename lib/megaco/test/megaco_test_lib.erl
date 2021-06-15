@@ -2130,11 +2130,11 @@ start_node(Node, Force, Retry, File, Line) ->
         pang ->
 	    [Name, Host] = node_to_name_and_host(Node),
             Pa = filename:dirname(code:which(?MODULE)),
-            Args = " -pa " ++ Pa ++
-                " -s " ++ atom_to_list(megaco_test_sys_monitor) ++ " start" ++ 
-                " -s global sync",
+            Args = ["-pa", Pa,
+                "-s", atom_to_list(megaco_test_sys_monitor), "start",
+                "-s", "global", "sync"],
             p("try start node ~p", [Node]),
-	    case slave:start_link(Host, Name, Args) of
+	    case peer:start_link(#{host => Host, name => Name, args => Args}) of
 		{ok, NewNode} when NewNode =:= Node ->
                     p("node ~p started - now set path, cwd and sync", [Node]),
 		    Path = code:get_path(),

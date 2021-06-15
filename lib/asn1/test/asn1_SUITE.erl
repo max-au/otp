@@ -715,18 +715,18 @@ ber_decode_error(Config, Rule, Opts) ->
     ber_decode_error:run(Opts).
 
 otp_14440(_Config) ->
-    Args = " -pa \"" ++ filename:dirname(code:which(?MODULE)) ++ "\"",
-    {ok,N} = slave:start(hostname(), otp_14440, Args),
+    Args = ["-pa", filename:dirname(code:which(?MODULE))],
+    {ok,N} = peer:start_link(#{name => ?FUNCTION_NAME, args => Args}),
     Result = rpc:call(N, ?MODULE, otp_14440_decode, []),
     io:format("Decode result = ~p~n", [Result]),
     case Result of
         {exit,{error,{asn1,{invalid_value,5}}}} ->
-            ok = slave:stop(N);
+            ok = peer:stop(N);
         %% We get this if stack depth limit kicks in:
         {exit,{error,{asn1,{unknown,_}}}} ->
-            ok = slave:stop(N);
+            ok = peer:stop(N);
         _ ->
-            _ = slave:stop(N),
+            _ = peer:stop(N),
             ?t:fail(Result)
     end.
 %%
