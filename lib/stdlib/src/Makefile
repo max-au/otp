@@ -103,6 +103,7 @@ MODULES= \
 	orddict \
 	ordsets \
 	re \
+	peer \
 	pool \
 	proc_lib \
 	proplists \
