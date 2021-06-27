@@ -324,7 +324,7 @@ start_slave(Args) ->
                      os:putenv("ERL_ZFLAGS", ZFlags ++ [" " | Args]),
                      test_server:start_node(list_to_atom(Name),
                                             slave,
-                                            [{args, "-pa " ++ Pa}])
+                                            [{args, ["-pa", Pa]}])
                  after
                      os:putenv("ERL_ZFLAGS", ZFlags)
                  end,

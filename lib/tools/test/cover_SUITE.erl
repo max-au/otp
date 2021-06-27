@@ -602,7 +602,7 @@ die_and_reconnect(Config) ->
 
     NodeName = cover_SUITE_die_and_reconnect,
     {ok,N1} = test_server:start_node(NodeName,peer,
-                                     [{args," -pa " ++ DataDir},
+                                     [{args, ["-pa", DataDir]},
                                       {start_cover,false}]),
     %% {ok,a} = cover:compile(a),
     {ok,f} = cover:compile(f),
@@ -621,7 +621,7 @@ die_and_reconnect(Config) ->
 
     %% Restart the node and check that cover reconnects
     {ok,N1} = test_server:start_node(NodeName,peer,
-                                     [{args," -pa " ++ DataDir},
+                                     [{args, ["-pa", DataDir]},
                                       {start_cover,false}]),
     timer:sleep(100),
     [N1] = cover:which_nodes(), % we are reconnected
@@ -647,7 +647,7 @@ dont_reconnect_after_stop(Config) ->
 
     NodeName = cover_SUITE_dont_reconnect_after_stop,
     {ok,N1} = test_server:start_node(NodeName,peer,
-                                     [{args," -pa " ++ DataDir},
+                                     [{args, ["-pa", DataDir]},
                                       {start_cover,false}]),
     {ok,f} = cover:compile(f),
     {ok,[N1]} = cover:start(nodes()),
@@ -664,7 +664,7 @@ dont_reconnect_after_stop(Config) ->
 
     %% Restart the node and check that cover does not reconnect
     {ok,N1} = test_server:start_node(NodeName,peer,
-                                     [{args," -pa " ++ DataDir},
+                                     [{args, ["-pa", DataDir]},
                                       {start_cover,false}]),
     timer:sleep(300),
     cover_which_nodes([]),
@@ -692,7 +692,7 @@ stop_node_after_disconnect(Config) ->
 
     NodeName = cover_SUITE_stop_node_after_disconnect,
     {ok,N1} = test_server:start_node(NodeName,peer,
-                                     [{args," -pa " ++ DataDir},
+                                     [{args, ["-pa", DataDir]},
                                       {start_cover,false}]),
     {ok,f} = cover:compile(f),
     {ok,[N1]} = cover:start(nodes()),
@@ -711,7 +711,7 @@ stop_node_after_disconnect(Config) ->
 
     %% Restart the node and check that cover does not reconnect
     {ok,N1} = test_server:start_node(NodeName,peer,
-                                     [{args," -pa " ++ DataDir},
+                                     [{args, ["-pa", DataDir]},
                                       {start_cover,false}]),
     timer:sleep(300),
     cover_which_nodes([]),
@@ -1159,7 +1159,7 @@ otp_8270(Config) when is_list(Config) ->
 
     PrivDir = proplists:get_value(priv_dir, Config),
 
-    As = [{args," -pa " ++ PrivDir}],
+    As = [{args, ["-pa", PrivDir]}],
     {ok,N1} = test_server:start_node(cover_n1,slave,As),
     {ok,N2} = test_server:start_node(cover_n2,slave,As),
     {ok,N3} = test_server:start_node(cover_n3,slave,As),

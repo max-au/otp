@@ -128,13 +128,13 @@ start_node(Name) ->
     Pa   = filename:dirname(code:which(?MODULE)),
     Args = case init:get_argument('CC_TEST') of
                {ok, [[]]} ->
-                   " -pa /clearcase/otp/libraries/snmp/ebin ";
+                   ["-pa", "/clearcase/otp/libraries/snmp/ebin"];
                {ok, [[Path]]} ->
-                   " -pa " ++ Path;
+                   ["-pa", Path];
                error ->
-                      ""
+                      []
               end,
-    A = Args ++ " -pa " ++ Pa,
+    A = Args ++ ["-pa", Pa],
     Opts = [{cleanup,false}, {args, A}],
     case (catch test_server:start_node(Name, slave, Opts)) of
         {ok, Node} ->

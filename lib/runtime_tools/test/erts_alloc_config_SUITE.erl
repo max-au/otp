@@ -91,8 +91,8 @@ basic(Config) when is_list(Config) ->
     os:putenv("ERL_ZFLAGS", ZFlgs),
 
     {ok, Node2} = start_node(Config,
-                             "-args_file " ++ ErtsAllocConfig
-                             ++ " -args_file " ++ ManualConfig),
+                             ["-args_file", ErtsAllocConfig,
+                              "-args_file", ManualConfig]),
 
     {_, _, _, Cfg} = rpc:call(Node2, erlang, system_info, [allocator]),
 
@@ -175,7 +175,7 @@ start_node(Config, Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
     test_server:start_node(mk_name(Config),
                            slave,
-                           [{args, "-pa " ++ Pa ++ " " ++ Args}]).
+                           [{args, ["-pa", Pa] ++ Args}]).
 
 stop_node(Node) ->
     true = test_server:stop_node(Node).

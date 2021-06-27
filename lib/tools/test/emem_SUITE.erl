@@ -651,4 +651,4 @@ mk_nodename(Config) ->
 
 start_node(Name, Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, peer, [{args, Args ++ " -pa " ++ Pa}]).
+    test_server:start_node(Name, peer, [{args, Args ++ ["-pa", Pa]}]).

@@ -708,7 +708,7 @@ node_supports_cache(_Config) ->
 
 start_slave_node(Name) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, " -pa " ++ Pa}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa]}]).
 
 random_node_name(BaseName) ->
     L = integer_to_list(erlang:unique_integer([positive])),
