@@ -376,9 +376,9 @@ dirty_mark(Config) when is_list(Config) ->
     {ok, Node} = test_server:start_node(dets_dirty_mark,
                                         slave,
                                         [{linked, false},
-                                         {args, "-pa " ++
+                                         {args, ["-pa",
                                               filename:dirname
-						(code:which(?MODULE))}]),
+						(code:which(?MODULE))]}]),
     ok = ensure_node(20, Node),
     %% io:format("~p~n",[rpc:call(Node, code, get_path, [])]),
     %% io:format("~p~n",[rpc:call(Node, file, get_cwd, [])]),
@@ -424,9 +424,9 @@ dirty_mark2(Config) when is_list(Config) ->
     {ok, Node} = test_server:start_node(dets_dirty_mark2,
                                         slave,
                                         [{linked, false},
-                                         {args, "-pa " ++
+                                         {args, ["-pa",
                                               filename:dirname
-						(code:which(?MODULE))}]),
+						(code:which(?MODULE))]}]),
     ok = ensure_node(20, Node),
     Pid = rpc:call(Node,erlang, spawn,
                    [?MODULE, dets_dirty_loop, []]),

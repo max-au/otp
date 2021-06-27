@@ -1193,7 +1193,7 @@ evaluator_2(Config, Apps) ->
 
 start_node(Name) ->
     PA = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ PA}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", PA]}]).
 
 %% string_to_handle/1,2.
 string_to_handle(Config) when is_list(Config) ->

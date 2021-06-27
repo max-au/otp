@@ -638,7 +638,7 @@ read_replies() ->
 
 start_node(Name) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    N = test_server:start_node(Name, slave, [{args, " -pa " ++ Pa}]),
+    N = test_server:start_node(Name, slave, [{args, ["-pa", Pa]}]),
     %% After starting a slave, it takes a little while until global knows
     %% about it, even if nodes() includes it, so we make sure that global
     %% knows about it before registering something on all nodes.

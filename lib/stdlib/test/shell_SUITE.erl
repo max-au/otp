@@ -72,7 +72,7 @@ end_per_testcase(_Case, Config) ->
 
 suite() ->
     [{ct_hooks,[ts_install_cth]},
-     {timetrap,{minutes,10}}].
+     {timetrap,{seconds,10}}].
 
 all() -> 
     [forget, known_bugs, otp_5226, otp_5327,
@@ -192,8 +192,8 @@ ok.
 %% Check restricted shell when started from the command line.
 start_restricted_on_command_line(Config) when is_list(Config) ->
     {ok,Node} = start_node(shell_suite_helper_1,
-			   "-pa "++proplists:get_value(priv_dir,Config)++
-			       " -stdlib restricted_shell foo"),
+			   ["-pa", proplists:get_value(priv_dir,Config),
+			       "-stdlib", "restricted_shell", "foo"]),
     "Warning! Restricted shell module foo not found: nofile"++_ =
 	t({Node, <<"begin m() end.">>}),
     "exception exit: restricted shell does not allow m()" =
@@ -219,8 +219,8 @@ start_restricted_on_command_line(Config) when is_list(Config) ->
                  ">>,
     ok = compile_file(Config, Test, Contents, []),
     {ok,Node2} = start_node(shell_suite_helper_2,
-				 "-pa "++proplists:get_value(priv_dir,Config)++
-				 " -stdlib restricted_shell test_restricted2"),
+				 ["-pa", proplists:get_value(priv_dir,Config),
+				 "-stdlib", "restricted_shell", "test_restricted2"]),
     "Module" ++ _ = t({Node2,<<"begin m() end.">>, utf8}),
     "exception exit: restricted shell does not allow c(foo)" =
 	comm_err({Node2,<<"begin c(foo) end.">>}),
@@ -669,7 +669,7 @@ otp_5435(Config) when is_list(Config) ->
 
 start_node(Name) ->
     PA = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ PA}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", PA]}]).
 
 otp_5435_2() ->
     true = code:del_path(compiler),
@@ -2752,8 +2752,8 @@ prompt_err(B) ->
 %% OTP-10302. Unicode. Also OTP-14285, Unicode atoms.
 otp_10302(Config) when is_list(Config) ->
     {ok,Node} = start_node(shell_suite_helper_2,
-			   "-pa "++proplists:get_value(priv_dir,Config)++
-			   " +pc unicode"),
+			   ["-pa", proplists:get_value(priv_dir,Config),
+			   "+pc", "unicode"]),
     Test1 =
         <<"begin
                io:setopts([{encoding,utf8}]),
@@ -2921,8 +2921,8 @@ otp_13719(Config) when is_list(Config) ->
 
 otp_14285(Config) ->
     {ok,Node} = start_node(shell_suite_helper_4,
-			   "-pa "++proplists:get_value(priv_dir,Config)++
-			   " +pc unicode"),
+			   ["-pa", proplists:get_value(priv_dir,Config),
+			   "+pc", "unicode"]),
     Test1 =
         <<"begin
                io:setopts([{encoding,utf8}]),
@@ -3235,7 +3235,7 @@ filename(Name, Config) ->
     filename:join(proplists:get_value(priv_dir, Config), Name).
 
 start_node(Name, Xargs) ->
-    N = test_server:start_node(Name, slave, [{args, " " ++ Xargs}]),
+    N = test_server:start_node(Name, slave, [{args, Xargs}]),
     global:sync(),
     N.
 

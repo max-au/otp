@@ -5185,7 +5185,7 @@ start_slave() ->
     MicroSecs = erlang:monotonic_time(),
     Name = "ets_" ++ integer_to_list(MicroSecs),
     Pa = filename:dirname(code:which(?MODULE)),
-    {ok, Node} = test_server:start_node(list_to_atom(Name), slave, [{args, "-pa " ++ Pa}]),
+    {ok, Node} = test_server:start_node(list_to_atom(Name), slave, [{args, ["-pa", Pa]}]),
     Node.
 
 repeat_par(FunToRepeat, NrOfTimes) ->
