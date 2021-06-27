@@ -1422,7 +1422,7 @@ pi(Item) ->
 
 start_node(Name) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ Pa}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa]}]).
 
 stop_node(Node) ->
     test_server:stop_node(Node).

@@ -1201,7 +1201,7 @@ otp_2012(Conf) when is_list(Conf) ->
 %%-----------------------------------------------------------------
 %% Test fail of transient app at start.
 otp_2718(Conf) when is_list(Conf) ->
-    {ok, Cp1} = start_node_args(cp1, "-pa " ++ proplists:get_value(data_dir,Conf)),
+    {ok, Cp1} = start_node_args(cp1, ["-pa", proplists:get_value(data_dir,Conf)]),
     wait_for_ready_net(),
 
     %% normal exit from the application
@@ -1409,8 +1409,8 @@ otp_4066(Conf) when is_list(Conf) ->
     w_app1(FdA12),
     file:close(FdA12),
 
-    Args1 = "-pa " ++ Dir ++ " -config " ++ filename:join(Dir, "otp_4066"),
-    Args2 =  "-pa " ++ Dir ++ " -kernel start_dist_ac true",
+    Args1 = ["-pa", Dir, "-config", filename:join(Dir, "otp_4066")],
+    Args2 =  ["-pa", Dir, "-kernel", "start_dist_ac", "true"],
 
     {ok, Cp2} = start_node_args(Ncp2, Args2),
     %% Cp1 syncs with cp2 (which is known to be up).
@@ -2456,7 +2456,7 @@ handle_many_config_files(Conf) when is_list(Conf) ->
     {ok, Node} = start_node(
         NodeName,
         Config,
-        " -config " ++ Config ++ " " ++ Config
+        ["-config", Config, Config]
     ),
     case rpc:call(Node, init, get_argument, [config]) of
         {ok, [[Config], [Config, Config]]} -> ok;
@@ -3085,7 +3085,7 @@ start_node_config(Name, SysConfigFun, Conf) ->
 
 start_node(Name) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, " -pa " ++ Pa}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa]}]).
 
 start_node(Name, ConfigFile) ->
     start_node(Name, ConfigFile, "").
@@ -3093,17 +3093,17 @@ start_node(Name, ConfigFile) ->
 start_node(Name, ConfigFile, ExtraArgs) ->
     Pa = filename:dirname(code:which(?MODULE)),
     test_server:start_node(Name, slave, [{args, 
-                                          " -pa " ++ Pa ++ 
-                                          " -config " ++ ConfigFile ++ 
+                                          ["-pa", Pa,
+                                          "-config", ConfigFile] ++
                                           ExtraArgs}]).
 
 start_node_with_cache(Name, SysConfigFun, Conf) ->
     ConfigFile = write_config_file(SysConfigFun, Conf),
-    start_node(Name, ConfigFile, " -code_path_cache").
+    start_node(Name, ConfigFile, ["-code_path_cache"]).
 
 start_node_args(Name, Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, " -pa " ++ Pa ++ " " ++ Args}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ Args}]).
 
 start_node_boot_3002(Name, Boot) ->
     Pa = filename:dirname(code:which(?MODULE)),
@@ -3112,14 +3112,14 @@ start_node_boot_3002(Name, Boot) ->
 		atom_to_list(Name) ++ " -boot " ++ Boot ++
 		" -sasl dummy \"missing "]),
     test_server:start_node(Name, slave, 
-                           [{args, " -pa " ++ Pa ++
-                             " -env ERL_CRASH_DUMP erl_crash_dump." ++
-                             atom_to_list(Name) ++ " -boot " ++ Boot ++ 
-                             " -sasl dummy \"missing "}]).
+                           [{args, ["-pa", Pa,
+                             "-env", "ERL_CRASH_DUMP", "erl_crash_dump." ++
+                             atom_to_list(Name), "-boot", Boot,
+                             "-sasl", "dummy", "\"missing "]}]).
 
 start_node_boot_config(Name, SysConfigFun, Conf, Boot) ->
     ConfigFile = write_config_file(SysConfigFun, Conf),
-    start_node(Name, ConfigFile, " -boot " ++ atom_to_list(Boot)).
+    start_node(Name, ConfigFile, ["-boot", atom_to_list(Boot)]).
 
 start_node_boot(Name, Config, Boot) ->
     Pa = filename:dirname(code:which(?MODULE)),
@@ -3127,13 +3127,13 @@ start_node_boot(Name, Config, Boot) ->
 	   "start_node_boot ~p~n",[" -pa " ++ Pa ++ " -config " ++ Config ++
 				       " -boot " ++ atom_to_list(Boot)]),
     test_server:start_node(Name, slave,
-			   [{args, " -pa " ++ Pa ++ " -config " ++ Config ++
-				 " -boot " ++ atom_to_list(Boot)}]).
+			   [{args, ["-pa", Pa, "-config", Config,
+				 "-boot", atom_to_list(Boot)]}]).
 
 start_node_config_sf(Name, SysConfigFun, Conf) ->
     ConfigFile = write_config_file(SysConfigFun, Conf),
     DataDir = proplists:get_value(data_dir, Conf), % is it used?
-    start_node(Name, ConfigFile, " -pa " ++ DataDir).
+    start_node(Name, ConfigFile, ["-pa", DataDir]).
 
 write_config_file(SysConfigFun, Conf) ->
     Dir = proplists:get_value(priv_dir, Conf),

@@ -1177,26 +1177,26 @@ test_exit(Config) when is_list(Config) ->
 start_node(Name, Config) ->
     Pa=filename:dirname(code:which(?MODULE)),
     Dir=proplists:get_value(priv_dir, Config),
-    ConfFile = "  -config " ++ filename:join(Dir, "global_group"),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ Pa ++ ConfFile}]).
+    ConfFile = ["-config", filename:join(Dir, "global_group")],
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ ConfFile}]).
 
 start_node_no(Name, Config) ->
     Pa=filename:dirname(code:which(?MODULE)),
     Dir=proplists:get_value(priv_dir, Config),
-    ConfFile = "  -config " ++ filename:join(Dir, "no_global_group"),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ Pa ++ ConfFile}]).
+    ConfFile = ["-config", filename:join(Dir, "no_global_group")],
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ ConfFile}]).
 
 start_node_no2(Name, Config) ->
     Pa=filename:dirname(code:which(?MODULE)),
     Dir=proplists:get_value(priv_dir, Config),
-    ConfFile = "  -config " ++ filename:join(Dir, "no_global_group_sync"),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ Pa ++ ConfFile}]).
+    ConfFile = ["-config", filename:join(Dir, "no_global_group_sync")],
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ ConfFile}]).
 
 start_node_comp(Name, Config) ->
     Pa=filename:dirname(code:which(?MODULE)),
     Dir=proplists:get_value(priv_dir, Config),
-    ConfFile = "  -config " ++ filename:join(Dir, "global_group_comp"),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ Pa ++ ConfFile}]).
+    ConfFile = ["-config", filename:join(Dir, "global_group_comp")],
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa] ++ ConfFile}]).
 
 node_names(Names, Config) ->
     [node_name(Name, Config) || Name <- Names].

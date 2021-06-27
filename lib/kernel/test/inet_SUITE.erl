@@ -818,7 +818,7 @@ gethostnative_parallell(Config) when is_list(Config) ->
 do_gethostnative_parallell() ->
     PA = filename:dirname(code:which(?MODULE)),
     {ok,Node} = test_server:start_node(gethost_parallell, slave,
-				       [{args, "-pa " ++ PA}]),
+				       [{args, ["-pa", PA]}]),
     ok = rpc:call(Node, ?MODULE, parallell_gethost, []),
     receive after 10000 -> ok end,
     pong = net_adm:ping(Node),
@@ -955,7 +955,7 @@ missing_hosts_reload(Config) when is_list(Config) ->
     % start a node
     Pa = filename:dirname(code:which(?MODULE)),
     {ok, TestNode} = test_server:start_node(?MODULE, slave,
-        [{args, "-pa " ++ Pa ++ " -kernel inetrc '\"" ++ InetRc ++ "\"'"}]),
+        [{args, ["-pa", Pa, "-kernel", "inetrc", "\"" ++ InetRc ++ "\""]}]),
     % ensure it has our RC
     Rc = rpc:call(TestNode, inet_db, get_rc, []),
     {hosts_file, HostsFile} = lists:keyfind(hosts_file, 1, Rc),
@@ -1049,7 +1049,7 @@ hosts_file_quirks(Config) when is_list(Config) ->
     %% start a node
     Pa = filename:dirname(code:which(?MODULE)),
     {ok, TestNode} = test_server:start_node(?MODULE, slave,
-        [{args, "-pa " ++ Pa ++ " -kernel inetrc '\"" ++ InetRc ++ "\"'"}]),
+        [{args, ["-pa", Pa, "-kernel", "inetrc", "\"" ++ InetRc ++ "\""]}]),
     %% ensure it has our RC
     Rc = rpc:call(TestNode, inet_db, get_rc, []),
     {hosts_file, HostsFile} = lists:keyfind(hosts_file, 1, Rc),

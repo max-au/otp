@@ -35,8 +35,6 @@
 
 -export([init/1, fini/1]).
 
--define(DEFAULT_TIMEOUT_SEC, 100).
-
 %%-----------------------------------------------------------------
 %% Test suite for init. (Most code is run during system start/stop.
 %% Should be started in a CC view with:
@@ -242,16 +240,16 @@ boot_var(Config) when is_list(Config) ->
 
     %% Should fail as we have not given -boot_var TEST_VAR
     {error, timeout} =
-	start_node(init_test, "-boot " ++ BootScript),
+	start_node(init_test, ["-boot", BootScript]),
 
     case is_real_system(KernelVsn, StdlibVsn) of
 	true ->
 	    %% Now it should work !!
 	    {ok, Node} =
 		start_node(init_test,
-			   "-boot " ++ BootScript ++
-			       " -boot_var TEST_VAR \"" ++
-			       TEST_VAR ++ "\""),
+			   ["-boot", BootScript,
+			       "-boot_var", "TEST_VAR",
+			       TEST_VAR]),
 	    stop_node(Node),
 	    Res = ok;
 	_ ->
@@ -298,9 +296,10 @@ many_restarts() ->
     [{timetrap,{minutes,16}}].
 
 many_restarts(Config) when is_list(Config) ->
-    {ok, Node} = loose_node:start(init_test, "", ?DEFAULT_TIMEOUT_SEC),
+    {ok, Node} = peer:start_link(#{name => init_test,
+        connection => standard_io}),
     loop_restart(50,Node,rpc:call(Node,erlang,whereis,[logger])),
-    loose_node:stop(Node),
+    peer:stop(Node),
     ok.
 
 loop_restart(0,_,_) ->
@@ -312,14 +311,14 @@ loop_restart(N,Node,EHPid) ->
 	{nodedown, Node} ->
 	    ok
     after 10000 ->
-	    loose_node:stop(Node),
+	    peer:stop(Node),
 	    ct:fail(not_stopping)
     end,
     ok = wait_for(60, Node, EHPid),
     loop_restart(N-1,Node,rpc:call(Node,erlang,whereis,[logger])).
 
 wait_for(0,Node,_) ->
-    loose_node:stop(Node),    
+    peer:stop(Node),
     error;
 wait_for(N,Node,EHPid) ->
     case rpc:call(Node, erlang, whereis, [logger]) of
@@ -376,14 +375,12 @@ restart_with_mode(Config) when is_list(Config) ->
 %% before restart.
 %% ------------------------------------------------
 restart(Config) when is_list(Config) ->
-    Args = args(),
+    Args = args() ++ ["-pa", filename:dirname(code:which(?MODULE))],
 
-    Pa = " -pa " ++ filename:dirname(code:which(?MODULE)),
-
-    %% Currently test_server:start_node cannot be used. The restarted
-    %% node immediately halts due to the implementation of
-    %% test_server:start_node.
-    {ok, Node} = loose_node:start(init_test, Args ++ Pa, ?DEFAULT_TIMEOUT_SEC),
+    %% Use peer directly, without test_server managing it, because
+    %% test_server halts the node as soon as it loses dist connection.
+    {ok, Node} = peer:start_link(#{name => init_test, args => Args,
+        connection => standard_io}),
     %% Ok, the node is up, now the real test test begins.
     erlang:monitor_node(Node, true),
     SysProcs0 = rpc:call(Node, ?MODULE, find_system_processes, []),
@@ -402,7 +399,7 @@ restart(Config) when is_list(Config) ->
 	{nodedown, Node} ->
 	    ok
     after 10000 ->
-	    loose_node:stop(Node),
+	    peer:stop(Node),
 	    ct:fail(not_stopping)
     end,
     ok = wait_restart(30, Node),
@@ -452,7 +449,7 @@ restart(Config) when is_list(Config) ->
 	true ->
 	    ok;
 	_ ->
-	    loose_node:stop(Node),
+	    peer:stop(Node),
 	    ct:fail(processes_not_greater)
     end,
 
@@ -464,10 +461,10 @@ restart(Config) when is_list(Config) ->
 	{ok, [["4", "5", "6"], ["7", "8", "9"]]} ->
 	    ok;
 	_ ->
-	    loose_node:stop(Node),
+	    peer:stop(Node),
 	    ct:fail({get_argument, restart_fail})
     end,
-    loose_node:stop(Node),
+    peer:stop(Node),
     ok.
 
 -record(sys_procs, {init,
@@ -653,12 +650,12 @@ script_id(Config) when is_list(Config) ->
 %% ------------------------------------------------
 
 boot1(Config) when is_list(Config) ->
-    Args = args() ++ " -boot start_sasl",
+    Args = args() ++ ["-boot", "start_sasl"],
     {ok, Node} = start_node(init_test, Args),
     stop_node(Node),
 
     %% Try to start with non existing boot file.
-    Args1 = args() ++ " -boot dummy_script",
+    Args1 = args() ++ ["-boot", "dummy_script"],
     {error, timeout} = start_node(init_test, Args1),
 
     ok.
@@ -667,7 +664,7 @@ boot2(Config) when is_list(Config) ->
     %% Absolute boot file name
     Boot = filename:join([code:root_dir(), "bin", "start_sasl"]),
 
-    Args = args() ++ " -boot \"" ++ Boot++"\"",
+    Args = args() ++ ["-boot", Boot],
     {ok, Node} = start_node(init_test, Args),
     stop_node(Node),
 
@@ -679,7 +676,7 @@ boot2(Config) when is_list(Config) ->
 				     ($/) -> $\\;
 				     (C) -> C
 				end, Boot),
-	    Args2 = args() ++ " -boot \"" ++ Win_boot ++ "\"",
+	    Args2 = args() ++ ["-boot", Win_boot],
 	    {ok, Node2} = start_node(init_test, Args2),
 	    stop_node(Node2);
 	_ ->
@@ -701,13 +698,12 @@ from(H, [_ | T]) -> from(H, T);
 from(_, []) -> [].
 
 args() ->
-    "-a kalle -- a b -d -b hej hopp -- c d -b san sa -c 4 5 6 -c 7 8 9".
+    ["-a", "kalle", "--", "a", "b", "-d", "-b", "hej", "hopp",
+        "--", "c", "d", "-b", "san", "sa", "-c", "4", "5", "6", "-c", "7", "8", "9"].
 
 long_args(A) ->
-    lists:flatten(
-      io_lib:format("-a kalle -- a b -d -b hej hopp -- c "
-		    "~s -b san sa -c 4 5 6 -c 7 8 9",
-		    [A])).
+    ["-a", "kalle", "--", "a", "b", "-d", "-b", "hej", "hopp", "--", "c", A,
+        "-b", "san", "sa", "-c", "4", "5", "6", "-c", "7", "8", "9"].
 
 create_script(Config) ->
     PrivDir = proplists:get_value(priv_dir,Config),

@@ -570,7 +570,7 @@ get_nodenames(N, T, Acc) ->
 start_node(TestCase) ->
     [Name] = get_nodenames(1, TestCase),
     Pa = filename:dirname(code:which(?MODULE)),
-    test_server:start_node(Name, slave, [{args, "-pa " ++ Pa}]).
+    test_server:start_node(Name, slave, [{args, ["-pa", Pa]}]).
 
 stop_node(Node) ->
     true = test_server:stop_node(Node).
