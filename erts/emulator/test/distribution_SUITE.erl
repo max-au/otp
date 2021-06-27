@@ -34,9 +34,6 @@
 
 -include_lib("common_test/include/ct.hrl").
 
-%-define(Line, erlang:display({line,?LINE}),).
--define(Line,).
-
 -export([all/0, suite/0, groups/0,
          init_per_suite/1, end_per_suite/1,
          init_per_group/2, end_per_group/2,
@@ -81,7 +78,7 @@
 -export([sender/3, receiver2/2, dummy_waiter/0, dead_process/0,
          group_leader_1/1,
          optimistic_dflags_echo/0, optimistic_dflags_sender/1,
-         roundtrip/1, bounce/1, do_dist_auto_connect/1, inet_rpc_server/1,
+         roundtrip/1, bounce/1, do_dist_auto_connect/1,
          dist_parallel_sender/3, dist_parallel_receiver/0,
          dist_evil_parallel_receiver/0, make_busy/2]).
 
@@ -180,54 +177,43 @@ ping(Config) when is_list(Config) ->
 
 %% Test erlang:group_leader(_, ExternalPid), i.e. DOP_GROUP_LEADER
 group_leader(Config) when is_list(Config) ->
-    ?Line Sock = start_relay_node(group_leader_1, []),
-    ?Line Sock2 = start_relay_node(group_leader_2, []),
-    try
-        ?Line Node2 = inet_rpc_nodename(Sock2),
-        ?Line {ok, ok} = do_inet_rpc(Sock, ?MODULE, group_leader_1, [Node2])
-    after
-        ?Line stop_relay_node(Sock),
-        ?Line stop_relay_node(Sock2)
-    end,
-    ok.
+    Node1 = start_relay_node(group_leader_1, []),
+    Node2 = start_relay_node(group_leader_2, []),
+    ok = peer:call(Node1, ?MODULE, group_leader_1, [Node2]),
+    peer:stop(Node1),
+    peer:stop(Node2).
 
 group_leader_1(Node2) ->
-    ?Line ExtPid = spawn(Node2, fun F() ->
+    ExtPid = spawn(Node2, fun F() ->
                                         receive {From, group_leader} ->
                                                 From ! {self(), group_leader, group_leader()}
                                         end,
                                         F()
                                 end),
-    ?Line GL1 = self(),
-    ?Line group_leader(GL1, ExtPid),
-    ?Line ExtPid ! {self(), group_leader},
-    ?Line {ExtPid, group_leader, GL1} = receive_one(),
+    GL1 = self(),
+    group_leader(GL1, ExtPid),
+    ExtPid ! {self(), group_leader},
+    {ExtPid, group_leader, GL1} = receive_one(),
 
     %% Kill connection and repeat test when group_leader/2 triggers auto-connect
-    ?Line net_kernel:monitor_nodes(true),
-    ?Line net_kernel:disconnect(Node2),
-    ?Line {nodedown, Node2} = receive_one(),
-    ?Line GL2 = spawn(fun() -> dummy end),
-    ?Line group_leader(GL2, ExtPid),
-    ?Line {nodeup, Node2} = receive_one(),
-    ?Line ExtPid ! {self(), group_leader},
-    ?Line {ExtPid, group_leader, GL2} = receive_one(),
+    net_kernel:monitor_nodes(true),
+    net_kernel:disconnect(Node2),
+    {nodedown, Node2} = receive_one(),
+    GL2 = spawn(fun() -> dummy end),
+    group_leader(GL2, ExtPid),
+    {nodeup, Node2} = receive_one(),
+    ExtPid ! {self(), group_leader},
+    {ExtPid, group_leader, GL2} = receive_one(),
     ok.
 
 %% Test optimistic distribution flags toward pending connections (DFLAG_DIST_HOPEFULLY)
 optimistic_dflags(Config) when is_list(Config) ->
-    ?Line Sender = start_relay_node(optimistic_dflags_sender, []),
-    ?Line Echo = start_relay_node(optimistic_dflags_echo, []),
-    try
-        ?Line {ok, ok} = do_inet_rpc(Echo, ?MODULE, optimistic_dflags_echo, []),
-
-        ?Line EchoNode = inet_rpc_nodename(Echo),
-        ?Line {ok, ok} = do_inet_rpc(Sender, ?MODULE, optimistic_dflags_sender, [EchoNode])
-    after
-        ?Line stop_relay_node(Sender),
-        ?Line stop_relay_node(Echo)
-    end,
-    ok.
+    Sender = start_relay_node(optimistic_dflags_sender, []),
+    Echo = start_relay_node(optimistic_dflags_echo, []),
+    ok = peer:call(Echo, ?MODULE, optimistic_dflags_echo, []),
+    ok = peer:call(Sender, ?MODULE, optimistic_dflags_sender, [Echo]),
+    peer:stop(Sender),
+    peer:stop(Echo).
 
 optimistic_dflags_echo() ->
     P = spawn(fun F() ->
@@ -242,25 +228,25 @@ optimistic_dflags_echo() ->
     ok.
 
 optimistic_dflags_sender(EchoNode) ->
-    ?Line net_kernel:monitor_nodes(true),
+    net_kernel:monitor_nodes(true),
 
     optimistic_dflags_do(EchoNode, <<1:1>>),
     optimistic_dflags_do(EchoNode, fun lists:map/2),
     ok.
 
 optimistic_dflags_do(EchoNode, Term) ->
-    ?Line {optimistic_dflags_echo, EchoNode} ! {self(), Term},
-    ?Line {nodeup, EchoNode} = receive_one(),
-    ?Line {EchoPid, Term} = receive_one(),
+    {optimistic_dflags_echo, EchoNode} ! {self(), Term},
+    {nodeup, EchoNode} = receive_one(),
+    {EchoPid, Term} = receive_one(),
     %% repeat with pid destination
-    ?Line net_kernel:disconnect(EchoNode),
-    ?Line {nodedown, EchoNode} = receive_one(),
-    ?Line EchoPid ! {self(), Term},
-    ?Line {nodeup, EchoNode} = receive_one(),
-    ?Line {EchoPid, Term} = receive_one(),
+    net_kernel:disconnect(EchoNode),
+    {nodedown, EchoNode} = receive_one(),
+    EchoPid ! {self(), Term},
+    {nodeup, EchoNode} = receive_one(),
+    {EchoPid, Term} = receive_one(),
 
-    ?Line net_kernel:disconnect(EchoNode),
-    ?Line {nodedown, EchoNode} = receive_one(),
+    net_kernel:disconnect(EchoNode),
+    {nodedown, EchoNode} = receive_one(),
     ok.
 
 
@@ -331,8 +317,8 @@ bulk_sendsend2(Terms, BinSize, BusyBufSize) ->
     %% default busy size and "+zdbbl 5", and if the 5 case gets
     %% "many many more" monitor messages, then we know we're working.
 
-    {ok, NodeSend} = start_node(bulk_sender, "+zdbbl " ++
-                                    integer_to_list(BusyBufSize)),
+    {ok, NodeSend} = start_node(bulk_sender, ["+zdbbl",
+                                    integer_to_list(BusyBufSize)]),
     _Send = spawn(NodeSend, erlang, apply,
                   [fun sendersender/4, [self(), Recv, Bin, Terms]]),
     {Elapsed, {_TermsN, SizeN}, MonitorCount} =
@@ -915,57 +901,55 @@ tr3() ->
 
 %% Test the dist_auto_connect once kernel parameter
 dist_auto_connect_once(Config) when is_list(Config) ->
-    Sock = start_relay_node(dist_auto_connect_relay_node,[]),
-    NN = inet_rpc_nodename(Sock),
-    Sock2 = start_relay_node(dist_auto_connect_once_node,
-                             "-kernel dist_auto_connect once"),
-    NN2 = inet_rpc_nodename(Sock2),
-    {ok,[]} = do_inet_rpc(Sock,erlang,nodes,[]),
-    {ok, pong} = do_inet_rpc(Sock2,net_adm,ping,[NN]),
-    {ok,[NN2]} = do_inet_rpc(Sock,erlang,nodes,[]),
-    {ok,[NN]} = do_inet_rpc(Sock2,erlang,nodes,[]),
+    NN = start_relay_node(dist_auto_connect_relay_node,[]),
+    NN2 = start_relay_node(dist_auto_connect_once_node,
+                             ["-kernel", "dist_auto_connect", "once"]),
+    [] = peer:call(NN,erlang,nodes,[]),
+    pong = peer:call(NN2,net_adm,ping,[NN]),
+    [NN2] = peer:call(NN,erlang,nodes,[]),
+    [NN] = peer:call(NN2,erlang,nodes,[]),
     [_,HostPartPeer] = string:lexemes(atom_to_list(NN),"@"),
     [_,MyHostPart] = string:lexemes(atom_to_list(node()),"@"),
     % Give net_kernel a chance to change the state of the node to up to.
     receive after 1000 -> ok end,
     case HostPartPeer of
         MyHostPart ->
-            ok = stop_relay_node(Sock),
-            {ok,pang} = do_inet_rpc(Sock2,net_adm,ping,[NN]);
+            ok = peer:stop(NN),
+            pang = peer:call(NN2,net_adm,ping,[NN]);
         _ ->
-            {ok, true} = do_inet_rpc(Sock,net_kernel,disconnect,[NN2]),
+            true = peer:call(NN,net_kernel,disconnect,[NN2]),
             receive
             after 500 -> ok
             end
     end,
-    {ok, []} = do_inet_rpc(Sock2,erlang,nodes,[]),
-    Sock3 = case HostPartPeer of
+    [] = peer:call(NN2,erlang,nodes,[]),
+    NN3 = case HostPartPeer of
                 MyHostPart ->
                     start_relay_node(dist_auto_connect_relay_node,[]);
                 _ ->
-                    Sock
+                    NN
             end,
     TS1 = timestamp(),
-    {ok, pang} = do_inet_rpc(Sock2,net_adm,ping,[NN]),
+    pang = peer:call(NN2,net_adm,ping,[NN]),
     TS2 = timestamp(),
     RefT = net_kernel:connecttime() - 1000,
     true = ((TS2 - TS1) < RefT),
     TS3 = timestamp(),
-    {ok, true} = do_inet_rpc(Sock2,erlang,monitor_node,
-                             [NN,true,[allow_passive_connect]]),
+    true = peer:call(NN2,erlang,monitor_node,
+                             [NN,true,[allow_passive_connect]], 60000),
     TS4 = timestamp(),
     true = ((TS4 - TS3) > RefT),
-    {ok, pong} = do_inet_rpc(Sock3,net_adm,ping,[NN2]),
-    {ok, pong} = do_inet_rpc(Sock2,net_adm,ping,[NN]),
-    {ok, true} = do_inet_rpc(Sock3,net_kernel,disconnect,[NN2]),
+    pong = peer:call(NN3,net_adm,ping,[NN2]),
+    pong = peer:call(NN2,net_adm,ping,[NN]),
+    true = peer:call(NN3,net_kernel,disconnect,[NN2]),
     receive
     after 500 -> ok
     end,
-    {ok, pang} = do_inet_rpc(Sock2,net_adm,ping,[NN]),
-    {ok, true} = do_inet_rpc(Sock2,net_kernel,connect_node,[NN]),
-    {ok, pong} = do_inet_rpc(Sock2,net_adm,ping,[NN]),
-    stop_relay_node(Sock3),
-    stop_relay_node(Sock2).
+    pang = peer:call(NN2,net_adm,ping,[NN]),
+    true = peer:call(NN2,net_kernel,connect_node,[NN]),
+    pong = peer:call(NN2,net_adm,ping,[NN]),
+    peer:stop(NN3),
+    peer:stop(NN2).
 
 
 
@@ -2540,7 +2524,7 @@ dmsg_bad_tag() ->  %% Will fail early at heap size calculation
 
 start_epmd_false(Config) when is_list(Config) ->
     %% Start a node with the option -start_epmd false.
-    {ok, OtherNode} = start_node(start_epmd_false, "-start_epmd false"),
+    {ok, OtherNode} = start_node(start_epmd_false, ["-start_epmd", "false"]),
     %% We should be able to ping it, as epmd was started by us:
     pong = net_adm:ping(OtherNode),
     stop_node(OtherNode),
@@ -2550,33 +2534,31 @@ start_epmd_false(Config) when is_list(Config) ->
 no_epmd(Config) when is_list(Config) ->
     %% Trying to start a node with -no_epmd but without passing the
     %% --proto_dist option should fail.
-    {error, timeout} = start_node(no_epmd, "-no_epmd").
+    {error, timeout} = start_node(no_epmd, ["-no_epmd"]).
 
 epmd_module(Config) when is_list(Config) ->
     %% We need a relay node to test this, since the test node uses the
     %% standard epmd module.
-    Sock1 = start_relay_node(epmd_module_node1, "-epmd_module " ++ ?MODULE_STRING),
-    Node1 = inet_rpc_nodename(Sock1),
+    Node1 = start_relay_node(epmd_module_node1, ["-epmd_module", ?MODULE_STRING]),
     %% Ask what port it's listening on - it won't have registered with
     %% epmd.
-    {ok, {ok, Port1}} = do_inet_rpc(Sock1, application, get_env, [kernel, dist_listen_port]),
+    {ok, Port1} = peer:call(Node1, application, get_env, [kernel, dist_listen_port]),
 
     %% Start a second node, passing the port number as a secret
     %% argument.
-    Sock2 = start_relay_node(epmd_module_node2, "-epmd_module " ++ ?MODULE_STRING
-			     ++ " -other_node_port " ++ integer_to_list(Port1)),
-    Node2 = inet_rpc_nodename(Sock2),
+    Node2 = start_relay_node(epmd_module_node2, ["-epmd_module", ?MODULE_STRING,
+			     "-other_node_port", integer_to_list(Port1)]),
     %% Node 1 can't ping node 2
-    {ok, pang} = do_inet_rpc(Sock1, net_adm, ping, [Node2]),
-    {ok, []} = do_inet_rpc(Sock1, erlang, nodes, []),
-    {ok, []} = do_inet_rpc(Sock2, erlang, nodes, []),
+    pang = peer:call(Node1, net_adm, ping, [Node2]),
+    [] = peer:call(Node1, erlang, nodes, []),
+    [] = peer:call(Node2, erlang, nodes, []),
     %% But node 2 can ping node 1
-    {ok, pong} = do_inet_rpc(Sock2, net_adm, ping, [Node1]),
-    {ok, [Node2]} = do_inet_rpc(Sock1, erlang, nodes, []),
-    {ok, [Node1]} = do_inet_rpc(Sock2, erlang, nodes, []),
+    pong = peer:call(Node2, net_adm, ping, [Node1]),
+    [Node2] = peer:call(Node1, erlang, nodes, []),
+    [Node1] = peer:call(Node2, erlang, nodes, []),
 
-    stop_relay_node(Sock2),
-    stop_relay_node(Sock1).
+    peer:stop(Node2),
+    peer:stop(Node1).
 
 %% epmd_module functions:
 
@@ -2616,7 +2598,7 @@ hopefull_data_encoding(Config) when is_list(Config) ->
 
 test_hopefull_data_encoding(Config, Fallback) when is_list(Config) ->
     {ok, ProxyNode} = start_node(hopefull_data_normal),
-    {ok, BouncerNode} = start_node(hopefull_data_bouncer, "-hidden"),
+    {ok, BouncerNode} = start_node(hopefull_data_bouncer, ["-hidden"]),
     case Fallback of
         false ->
             ok;
@@ -2836,7 +2818,7 @@ start_node(Name, Args, Rel) when is_atom(Name), is_list(Rel) ->
              end,
     test_server:start_node(Name, slave,
                            [{args,
-                             Args++" -setcookie "++Cookie++" -pa \""++Pa++"\""}
+                             Args ++ ["-setcookie", Cookie, "-pa", Pa]}
                             | RelArg]);
 start_node(Config, Args, Rel) when is_list(Config), is_list(Rel) ->
     Name = list_to_atom((atom_to_list(?MODULE)
@@ -2889,74 +2871,14 @@ freeze_node(Node, MS) ->
 inet_rpc_nodename({N,H,_Sock}) ->
     list_to_atom(N++"@"++H).
 
-do_inet_rpc({_,_,Sock},M,F,A) ->
-    Bin = term_to_binary({M,F,A}),
-    gen_tcp:send(Sock,Bin),
-    case gen_tcp:recv(Sock,0) of
-        {ok, Bin2} ->
-            T = binary_to_term(Bin2),
-            {ok,T};
-        Else ->
-            {error, Else}
-    end.
-
-inet_rpc_server([Host, PortList]) ->
-    Port = list_to_integer(PortList),
-    {ok, Sock} = gen_tcp:connect(Host, Port,[binary, {packet, 4}, 
-                                             {active, false}]),
-    inet_rpc_server_loop(Sock).
-
-inet_rpc_server_loop(Sock) ->
-    case gen_tcp:recv(Sock,0) of
-        {ok, Bin} ->
-            {M,F,A} = binary_to_term(Bin),
-            Res = (catch apply(M,F,A)),
-            RB = term_to_binary(Res),
-            gen_tcp:send(Sock,RB),
-            inet_rpc_server_loop(Sock);
-        _ ->
-            erlang:halt()
-    end.
-
-
-start_relay_node(Node, Args) ->
+start_relay_node(Name, Args) ->
     Pa = filename:dirname(code:which(?MODULE)),
     Cookie = "NOT"++atom_to_list(erlang:get_cookie()),
-    {ok, LSock} = gen_tcp:listen(0, [binary, {packet, 4}, {active, false}]),
-    {ok, Port} = inet:port(LSock),
-    {ok, Host} = inet:gethostname(),
-    RunArg = "-run " ++ atom_to_list(?MODULE) ++ " inet_rpc_server " ++
-    Host ++ " " ++ integer_to_list(Port),
-    {ok, NN} = test_server:start_node(Node, peer,
-                                      [{args, Args ++
-                                        " -setcookie "++Cookie++" -pa "++Pa++" "++
-                                        RunArg}]),
-    [N,H] = string:lexemes(atom_to_list(NN),"@"),
-    {ok, Sock} = gen_tcp:accept(LSock),
-    pang = net_adm:ping(NN),
-    {N,H,Sock}.
-
-stop_relay_node({N,H,Sock}) ->
-    catch do_inet_rpc(Sock,erlang,halt,[]),
-    catch gen_tcp:close(Sock),
-    wait_dead(N,H,10).
-
-wait_dead(N,H,0) ->
-    {error,{not_dead,N,H}};
-wait_dead(N,H,X) ->
-    case erl_epmd:port_please(N,H) of
-        {port,_,_} ->
-            receive
-            after 1000 ->
-                      ok
-            end,
-            wait_dead(N,H,X-1);
-        noport ->
-            ok;
-        Else ->
-            {error, {unexpected, Else}}
-    end.
-
+    {ok, Node} = peer:start_link(#{name => Name,
+        connection => 0,
+        args => Args ++ ["-setcookie", Cookie, "-pa", Pa]}),
+    pang = net_adm:ping(Node),
+    Node.
 
 start_node_monitors(Nodes) ->
     Master = self(),
