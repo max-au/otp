@@ -1221,7 +1221,7 @@ void beam_jit_return_to_trace(Process *c_p) {
 
             if (BeamIsReturnTrace(return_to_address)) {
                 cpp += CP_SIZE + 2;
-            } else if (BeamIsReturnTimeTrace(return_to_address)) {
+            } else if (BeamIsCallTraceReturn(return_to_address)) {
                 cpp += CP_SIZE + 1;
             } else if (BeamIsReturnToTrace(return_to_address)) {
                 cpp += CP_SIZE;
