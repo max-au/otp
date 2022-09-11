@@ -158,7 +158,9 @@ atom busy_port
 atom call
 atom call_count
 atom call_error_handler
+atom call_memory
 atom call_time
+atom call_trace_return
 atom caller
 atom caller_line
 atom capture
@@ -598,7 +600,6 @@ atom reset_seq_trace
 atom restart
 atom resume
 atom return_from
-atom return_time_trace
 atom return_to
 atom return_to_trace
 atom return_trace
